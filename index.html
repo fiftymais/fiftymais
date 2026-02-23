@@ -818,20 +818,34 @@ document.body.insertAdjacentHTML('beforeend', `
   <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 `);
 
+// Timeout de segurança — 4s sem resposta vai pro login
+const loadingTimeout = setTimeout(() => {
+  const ls = document.getElementById('loadingScreen');
+  if (ls) { ls.remove(); document.getElementById('loginScreen').style.display = 'flex'; }
+}, 4000);
+
+function removeLoading() {
+  clearTimeout(loadingTimeout);
+  const ls = document.getElementById('loadingScreen');
+  if (ls) ls.remove();
+}
+
 // Verifica sessão existente ao carregar
 sb.auth.getSession().then(({ data: { session } }) => {
+  removeLoading();
   if (session?.user) {
     currentUser = session.user;
     document.getElementById('navAvatar').textContent = (session.user.email||'U')[0].toUpperCase();
-    document.getElementById('loadingScreen').remove();
     document.getElementById('appScreen').style.display = 'block';
     appReady = true;
     carregarPerfil();
     carregarPropostas();
   } else {
-    document.getElementById('loadingScreen').remove();
     document.getElementById('loginScreen').style.display = 'flex';
   }
+}).catch(() => {
+  removeLoading();
+  document.getElementById('loginScreen').style.display = 'flex';
 });
 
 sb.auth.onAuthStateChange(async (event, session) => {
