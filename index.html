@@ -397,7 +397,6 @@ textarea { min-height: auto; resize: none; }
       <div class="field"><label>Nome *</label><input type="text" id="c-nome" placeholder="Nome completo do cliente" autocomplete="off"></div>
       <div class="field"><label>WhatsApp *</label><input type="tel" id="c-wpp" placeholder="(98) 99999-9999" inputmode="tel"></div>
       <div class="field"><label>Endereço / Local do serviço</label><input type="text" id="c-end" placeholder="Rua, número, bairro..."></div>
-      <div class="field"><label>Localização do Projeto</label><input type="text" id="c-local" placeholder="Ex: Condomínio Rafaela, Bloco A, Apto 302"></div>
       <div class="field"><label>Complemento / Referência</label><input type="text" id="c-ref" placeholder="Apto, portão, referência..."></div>
     </div>
     <button class="btn btn-primary" onclick="goStep(2)">Próximo: Tipo de Móvel →</button>
@@ -537,14 +536,6 @@ textarea { min-height: auto; resize: none; }
         <div class="field"><label>Condição de pagamento</label><input type="text" id="pg-condicao" placeholder="Ex: 50% na aprovação + 50% na entrega"></div>
         <div class="field"><label>Chave PIX</label><input type="text" id="pg-pix" placeholder="CPF, telefone ou e-mail"></div>
       </div>
-    </div>
-    <div class="card">
-      <div class="card-head">Condições Comerciais</div>
-      <textarea id="pg-condicoes" rows="4" placeholder="Ex: 50% na aprovação e 50% na entrega. Parcelamento disponível..."></textarea>
-    </div>
-    <div class="card">
-      <div class="card-head">Considerações Importantes</div>
-      <textarea id="pg-consideracoes" rows="3" placeholder="Ex: Esta proposta não contempla tampos de pedra, eletrodomésticos, iluminação..."></textarea>
     </div>
     <div class="card">
       <div class="card-head">Observações Finais</div>
@@ -1027,7 +1018,6 @@ async function salvarProposta() {
       cliente_nome:  v('c-nome'),
       cliente_wpp:   v('c-wpp'),
       cliente_end:   v('c-end'),
-      cliente_local: v('c-local'),
       cliente_ref:   v('c-ref'),
       tipo_movel:    movelSelecionado,
       chapa:         document.querySelector('#chapas .chip.on')?.textContent || '',
@@ -1046,9 +1036,7 @@ async function salvarProposta() {
       excluso:       v('v-excluso'),
       pgto_formas:   pgtos,
       pgto_condicao: v('pg-condicao'),
-      pgto_condicoes: v('pg-condicoes'),
       pgto_pix:      v('pg-pix'),
-      pg_consideracoes: v('pg-consideracoes'),
       obs_final:     v('obs-final'),
       status:        'ativa',
       updated_at:    new Date().toISOString()
@@ -1101,7 +1089,7 @@ function editarProposta(id) {
 
 function carregarFormDeProposta(p) {
   set('c-nome', p.cliente_nome); set('c-wpp', p.cliente_wpp);
-  set('c-end', p.cliente_end);   set('c-local', p.cliente_local||'');  set('c-ref', p.cliente_ref);
+  set('c-end', p.cliente_end);   set('c-ref', p.cliente_ref);
   movelSelecionado = p.tipo_movel || 'Cozinha Planejada';
   document.querySelectorAll('#movelGrid .movel-card').forEach(c => {
     const lbl = c.querySelector('.ml').textContent;
@@ -1124,8 +1112,7 @@ function carregarFormDeProposta(p) {
   document.querySelectorAll('.pgto-card').forEach(c => {
     c.classList.toggle('on', (p.pgto_formas || []).includes(c.querySelector('.pl').textContent));
   });
-  set('pg-condicao', p.pgto_condicao); set('pg-condicoes', p.pgto_condicoes||'');
-  set('pg-pix', p.pgto_pix); set('pg-consideracoes', p.pg_consideracoes||'');
+  set('pg-condicao', p.pgto_condicao); set('pg-pix', p.pgto_pix);
   set('obs-final', p.obs_final);
   calcTotal();
 }
@@ -1428,9 +1415,9 @@ function novaPropostaForm() {
   editingId = null;
   document.getElementById('orcTitle').textContent = 'Nova Proposta';
   document.getElementById('btnSalvar').textContent = '💾 Salvar e Gerar Proposta';
-  ['c-nome','c-wpp','c-end','c-local','c-ref','m-detalhes','m-inicio','m-entrega','m-prazo-obs',
+  ['c-nome','c-wpp','c-end','c-ref','m-detalhes','m-inicio','m-entrega','m-prazo-obs',
    'v-mat','v-mao','v-ferr','v-outros','v-garantia','v-incluso','v-excluso',
-   'pg-condicao','pg-condicoes','pg-pix','pg-consideracoes','obs-final'].forEach(id => set(id,''));
+   'pg-condicao','pg-pix','obs-final'].forEach(id => set(id,''));
   set('v-margem','30');
   movelSelecionado = 'Cozinha Planejada';
   document.querySelectorAll('#movelGrid .movel-card').forEach((c,i) => c.classList.toggle('on', i===0));
@@ -1445,253 +1432,323 @@ function novaPropostaForm() {
   goStep(1);
 }
 
-
 // ═══════════════════════════════════════
-// PDF — LAYOUT MODELO KAPRIZZO
+// PDF — LAYOUT KAPRIZZO
 // ═══════════════════════════════════════
 async function gerarPDF() {
   toast('⏳ Gerando PDF...');
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
   const W=210, M=20, TW=170;
-  const PRETO=[0,0,0], CINZA=[90,90,90], LGREY=[200,200,200], XLGREY=[247,247,247], BRANCO=[255,255,255];
-  let y = 18;
+  const PRETO=[0,0,0], CINZA=[80,80,80], LGREY=[190,190,190], XLGREY=[247,247,247], BRANCO=[255,255,255];
+  let y = 16;
 
   const p    = currentPropostaData;
   const logo = logoData || currentProfile.logo;
   const hoje = new Date(p.created_at || Date.now()).toLocaleDateString('pt-BR');
-  const num  = String(p.numero||1).padStart(3,'0');
 
-  function chkPg(n=20){ if(y+n>278){ doc.addPage(); y=18; } }
-
-  // ── LOGO / NOME EMPRESA ──
-  function semLogo(){
-    const nm  = currentProfile.nome || 'MARCENARIA';
-    const esp = currentProfile.especialidade || 'MÓVEIS PLANEJADOS';
-    doc.setFillColor(...PRETO);
-    doc.circle(W/2, y+16, 18, 'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...BRANCO);
-    const nl = doc.splitTextToSize(nm.toUpperCase(), 28);
-    nl.forEach((l,i) => doc.text(l, W/2, y+11+(i*5), {align:'center'}));
-    doc.setFontSize(5.5);
-    doc.text(esp.toUpperCase(), W/2, y+11+nl.length*5, {align:'center'});
-    y += 42;
+  function chkPg(n=22){
+    if(y+n>276){ doc.addPage(); y=16; }
   }
 
-  if (logo) {
-    try {
-      doc.addImage(logo, 'JPEG', W/2-18, y, 36, 36, '', 'FAST');
-      y += 42;
-    } catch(e) { semLogo(); }
-  } else { semLogo(); }
+  // ─────────────────────────────
+  // LOGO / CÍRCULO COM NOME
+  // ─────────────────────────────
+  if(logo){
+    try{
+      // Logo centralizada, arredondada visualmente com clip circle
+      const lx = W/2-20, ly = y, ls = 40;
+      doc.addImage(logo, 'JPEG', lx, ly, ls, ls, '', 'FAST');
+      y += ls + 10;
+    }catch(e){ desenharCirculo(); }
+  } else { desenharCirculo(); }
 
-  // ── TÍTULO ──
-  y += 2;
-  doc.setFontSize(20); doc.setFont('helvetica','bold'); doc.setTextColor(...PRETO);
-  const tl = doc.splitTextToSize('PROPOSTA DE ORÇAMENTO PARA MÓVEIS PLANEJADOS', TW);
-  doc.text(tl, M, y); y += tl.length * 9 + 5;
+  function desenharCirculo(){
+    const cx=W/2, cy=y+20, r=20;
+    doc.setFillColor(...PRETO);
+    doc.circle(cx, cy, r, 'F');
+    const nm  = (currentProfile.nome || 'MARCENARIA').toUpperCase();
+    const esp = (currentProfile.especialidade || 'MÓVEIS PLANEJADOS').toUpperCase();
+    doc.setFont('helvetica','bold');
+    doc.setTextColor(...BRANCO);
+    const nmLines = doc.splitTextToSize(nm, 30);
+    const totalH  = nmLines.length * 4.5 + 4.5;
+    let ty = cy - totalH/2 + 4;
+    nmLines.forEach(l => {
+      doc.setFontSize(8); doc.text(l, cx, ty, {align:'center'}); ty += 4.5;
+    });
+    doc.setFontSize(5.5); doc.text(esp, cx, ty, {align:'center'});
+    y += 48;
+  }
 
-  // ── LINHA DIVISÓRIA ──
-  doc.setDrawColor(...LGREY); doc.setLineWidth(0.5); doc.line(M, y, W-M, y); y += 10;
+  // ─────────────────────────────
+  // TÍTULO
+  // ─────────────────────────────
+  y += 4;
+  doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.setTextColor(...PRETO);
+  const tituloLines = doc.splitTextToSize('PROPOSTA DE ORÇAMENTO PARA MÓVEIS PLANEJADOS', TW);
+  doc.text(tituloLines, M, y);
+  y += tituloLines.length * 10 + 4;
 
-  // ── DADOS DO CLIENTE ──
-  const localProjeto = p.cliente_local || p.cliente_end || '—';
-  const validadeProp = p.pgto_validade || currentProfile.validade || 'A definir';
-  [
-    ['Cliente',                p.cliente_nome   || '—'],
-    ['Localização do Projeto', localProjeto],
-    ['Validade da Proposta',   validadeProp],
-  ].forEach(([label, valor]) => {
-    doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(...PRETO);
+  // linha divisória
+  doc.setDrawColor(...LGREY); doc.setLineWidth(0.5); doc.line(M, y, W-M, y);
+  y += 10;
+
+  // ─────────────────────────────
+  // DADOS DO CLIENTE
+  // ─────────────────────────────
+  function linhaDado(label, valor){
+    if(!valor) return;
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...PRETO);
     const lw = doc.getTextWidth(label + ': ');
     doc.text(label + ': ', M, y);
     doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
-    const vl = doc.splitTextToSize(valor, TW - lw);
-    doc.text(vl, M + lw, y); y += vl.length * 5.5 + 0.5;
-  });
-  y += 10;
-
-  // ── DETALHAMENTO POR AMBIENTE ──
-  const tipo  = p.tipo_movel  || '';
-  const chapa = p.chapa       || '';
-  const acab  = p.acabamento  || '';
-  const ferr  = p.ferragens   || '';
-  const det   = p.detalhes    || '';
-  const meds  = (p.medidas || []).filter(m => m.nome || m.l);
-
-  if (tipo || meds.length > 0) {
-    doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.setTextColor(...PRETO);
-    doc.text('DETALHAMENTO POR AMBIENTE', M, y); y += 4;
-    doc.setDrawColor(...LGREY); doc.setLineWidth(0.3); doc.line(M, y, W-M, y); y += 8;
-
-    if (tipo) {
-      doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(...PRETO);
-      doc.text('1. ' + tipo, M, y); y += 6;
-    }
-
-    if (meds.length > 0) {
-      doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
-      const mStr = meds.map(m => {
-        let s = m.nome || '';
-        const dims = [m.l ? m.l+'m L' : null, m.a ? m.a+'m A' : null, m.p ? m.p+'m P' : null].filter(Boolean);
-        if (dims.length) s += ' (' + dims.join(' x ') + ')';
-        return s;
-      }).join('; ');
-      const ml = doc.splitTextToSize('Medidas: ' + mStr, TW);
-      doc.text(ml, M, y); y += ml.length * 5;
-    }
-
-    if (chapa || acab) {
-      doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
-      const al = doc.splitTextToSize('Acabamento: ' + [chapa, acab].filter(Boolean).join(', '), TW);
-      doc.text(al, M, y); y += al.length * 5;
-    }
-    if (ferr) {
-      doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
-      doc.text('Ferragens: ' + ferr, M, y); y += 5;
-    }
-    if (det) {
-      doc.setFontSize(9.5); doc.setFont('helvetica','italic'); doc.setTextColor(130,130,130);
-      const dl = doc.splitTextToSize(det, TW); doc.text(dl, M, y); y += dl.length * 5;
-    }
-
-    const ini = p.inicio  ? new Date(p.inicio +'T12:00').toLocaleDateString('pt-BR') : '';
-    const ent = p.entrega ? new Date(p.entrega+'T12:00').toLocaleDateString('pt-BR') : '';
-    const prazoStr = [ini ? 'Início: '+ini : null, ent ? 'Entrega: '+ent : null, p.prazo_obs || null].filter(Boolean).join('  •  ');
-    if (prazoStr) {
-      doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
-      doc.text(prazoStr, M, y); y += 5;
-    }
-    if (p.garantia) {
-      doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
-      const gl = doc.splitTextToSize('Garantia: ' + p.garantia, TW); doc.text(gl, M, y); y += gl.length * 5;
-    }
-    if (p.incluso) {
-      doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
-      const il = doc.splitTextToSize('Incluso: ' + p.incluso, TW); doc.text(il, M, y); y += il.length * 5;
-    }
-    if (p.excluso) {
-      doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
-      const el = doc.splitTextToSize('Não incluso: ' + p.excluso, TW); doc.text(el, M, y); y += el.length * 5;
-    }
-    y += 6;
+    const vLines = doc.splitTextToSize(valor, TW - lw);
+    doc.text(vLines, M + lw, y);
+    y += vLines.length * 5.5;
   }
 
-  // ── SUMÁRIO DE INVESTIMENTO ──
-  chkPg(30);
-  doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.setTextColor(...PRETO);
-  doc.text('SUMÁRIO DE INVESTIMENTO', M, y); y += 4;
-  doc.setDrawColor(...LGREY); doc.setLineWidth(0.3); doc.line(M, y, W-M, y); y += 6;
+  linhaDado('Cliente',                p.cliente_nome);
+  linhaDado('Localização do Projeto', p.cliente_local || p.cliente_end);
+  linhaDado('Validade da Proposta',   p.pgto_validade || currentProfile.validade || 'A definir');
+  y += 10;
+
+  // ─────────────────────────────
+  // DETALHAMENTO POR AMBIENTE
+  // ─────────────────────────────
+  const meds = (p.medidas || []).filter(m => m.nome || m.l);
+  const tipo     = p.tipo_movel   || '';
+  const chapa    = p.chapa        || '';
+  const acab     = p.acabamento   || '';
+  const ferr     = p.ferragens    || '';
+  const det      = p.detalhes     || '';
+  const garantia = p.garantia     || '';
+  const incluso  = p.incluso      || '';
+  const excluso  = p.excluso      || '';
+
+  // Só mostra seção se houver algo
+  if(tipo || meds.length > 0 || det){
+    chkPg(30);
+    doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(...PRETO);
+    doc.text('DETALHAMENTO POR AMBIENTE', M, y);
+    y += 3;
+    doc.setDrawColor(...LGREY); doc.setLineWidth(0.3); doc.line(M, y, W-M, y);
+    y += 8;
+
+    // Ambiente 1 — tipo de móvel
+    if(tipo){
+      chkPg(12);
+      doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(...PRETO);
+      doc.text('1. ' + tipo, M, y); y += 6;
+
+      // medidas
+      if(meds.length > 0){
+        const mStr = meds.map(m => {
+          let s = m.nome ? m.nome + ': ' : '';
+          const dims = [
+            m.l ? m.l+'m Largura'    : null,
+            m.a ? m.a+'m Altura'     : null,
+            m.p ? m.p+'m Profundidade': null
+          ].filter(Boolean);
+          if(dims.length) s += dims.join(' x ');
+          return s;
+        }).join('; ');
+        doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+        const ml = doc.splitTextToSize('Medidas: ' + mStr, TW);
+        doc.text(ml, M, y); y += ml.length * 5;
+      }
+
+      // acabamento
+      if(chapa || acab){
+        doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+        const al = doc.splitTextToSize('Acabamento: ' + [chapa, acab].filter(Boolean).join(', '), TW);
+        doc.text(al, M, y); y += al.length * 5;
+      }
+
+      // ferragens / puxadores
+      if(ferr){
+        doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+        doc.text('Puxadores: ' + ferr, M, y); y += 5;
+      }
+
+      // detalhes
+      if(det){
+        doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+        const dl = doc.splitTextToSize('Detalhe: ' + det, TW);
+        doc.text(dl, M, y); y += dl.length * 5;
+      }
+
+      // prazo
+      const ini = p.inicio  ? new Date(p.inicio +'T12:00').toLocaleDateString('pt-BR') : '';
+      const ent = p.entrega ? new Date(p.entrega+'T12:00').toLocaleDateString('pt-BR') : '';
+      if(ini || ent || p.prazo_obs){
+        doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+        const ps = [ini?'Início: '+ini:null, ent?'Entrega: '+ent:null, p.prazo_obs||null].filter(Boolean).join('  •  ');
+        doc.text(ps, M, y); y += 5;
+      }
+
+      // garantia
+      if(garantia){
+        doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+        const gl = doc.splitTextToSize('Garantia: ' + garantia, TW);
+        doc.text(gl, M, y); y += gl.length * 5;
+      }
+
+      // incluso / excluso
+      if(incluso){
+        doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+        const il = doc.splitTextToSize('Incluso: ' + incluso, TW);
+        doc.text(il, M, y); y += il.length * 5;
+      }
+      if(excluso){
+        doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+        const el = doc.splitTextToSize('Não incluso: ' + excluso, TW);
+        doc.text(el, M, y); y += el.length * 5;
+      }
+
+      y += 6;
+    }
+  }
+
+  // ─────────────────────────────
+  // SUMÁRIO DE INVESTIMENTO
+  // ─────────────────────────────
+  chkPg(40);
+  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(...PRETO);
+  doc.text('SUMÁRIO DE INVESTIMENTO', M, y);
+  y += 3;
+  doc.setDrawColor(...LGREY); doc.setLineWidth(0.3); doc.line(M, y, W-M, y);
+  y += 7;
 
   // cabeçalho tabela
-  doc.setFillColor(240,240,240); doc.rect(M, y, TW, 7, 'F');
-  doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...PRETO);
-  doc.text('Item', M+3, y+4.8);
-  doc.text('Valor Total', W-M-3, y+4.8, {align:'right'});
+  doc.setFillColor(230,230,230); doc.rect(M, y, TW, 7, 'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...PRETO);
+  doc.text('Ambiente', M+4, y+4.8);
+  doc.text('Valor Total', W-M-4, y+4.8, {align:'right'});
   y += 7;
 
   // linha do item
   doc.setFillColor(...XLGREY); doc.rect(M, y, TW, 7, 'F');
-  doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...PRETO);
-  doc.text(tipo || 'Serviço de Marcenaria', M+3, y+4.8);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...PRETO);
+  doc.text(tipo || 'Serviço de Marcenaria', M+4, y+4.8);
   doc.setFont('helvetica','bold');
-  doc.text(fmt(p.v_total||0), W-M-3, y+4.8, {align:'right'});
+  doc.text(fmt(p.v_total||0), W-M-4, y+4.8, {align:'right'});
   y += 8;
 
-  // barra total
+  // barra INVESTIMENTO TOTAL
   doc.setFillColor(...PRETO); doc.rect(M, y, TW, 10, 'F');
-  doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(...BRANCO);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(...BRANCO);
   doc.text('INVESTIMENTO TOTAL:', M+4, y+6.8);
   doc.text(fmt(p.v_total||0), W-M-4, y+6.8, {align:'right'});
   y += 16;
 
-  // ── CONDIÇÕES COMERCIAIS ──
-  const condicoes  = p.pgto_condicoes || '';
-  const condicao   = p.pgto_condicao  || '';
-  const pgtos      = (p.pgto_formas   || []).join(', ');
-  const pix        = p.pgto_pix       || '';
-  const temCond    = condicoes || condicao || pgtos || pix;
+  // ─────────────────────────────
+  // CONDIÇÕES COMERCIAIS
+  // ─────────────────────────────
+  const condicoes = p.pgto_condicoes || p.pgto_condicao || '';
+  const pgtos     = (p.pgto_formas || []).join(', ');
+  const pix       = p.pgto_pix || '';
 
-  if (temCond) {
-    chkPg(20);
-    doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.setTextColor(...PRETO);
-    doc.text('CONDIÇÕES COMERCIAIS', M, y); y += 4;
-    doc.setDrawColor(...LGREY); doc.line(M, y, W-M, y); y += 7;
+  if(condicoes || pgtos || pix){
+    chkPg(24);
+    doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(...PRETO);
+    doc.text('CONDIÇÕES COMERCIAIS', M, y);
+    y += 3;
+    doc.setDrawColor(...LGREY); doc.line(M, y, W-M, y);
+    y += 8;
 
-    const textoCondicoes = condicoes || condicao;
-    if (textoCondicoes) {
-      doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
-      const cl = doc.splitTextToSize(textoCondicoes, TW); doc.text(cl, M, y); y += cl.length * 5 + 4;
+    if(condicoes){
+      doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+      const cl = doc.splitTextToSize(condicoes, TW);
+      doc.text(cl, M, y); y += cl.length * 5.2 + 3;
     }
-    if (pgtos) {
-      doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
-      doc.text('Formas de pagamento: ' + pgtos, M, y); y += 5;
+    if(pgtos){
+      doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+      const fl = doc.splitTextToSize('Formas de pagamento: ' + pgtos, TW);
+      doc.text(fl, M, y); y += fl.length * 5.2 + 2;
     }
-    if (pix) {
-      doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
-      doc.text('PIX: ' + pix, M, y); y += 5;
+    if(pix){
+      doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+      doc.text('PIX: ' + pix, M, y); y += 5.2;
     }
-    y += 4;
+    y += 6;
   }
 
-  // ── INFORMAÇÕES DE CONTATO ──
-  if (currentProfile.nome || currentProfile.wpp) {
-    chkPg(20);
-    doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.setTextColor(...PRETO);
-    doc.text('INFORMAÇÕES DE CONTATO', M, y); y += 4;
-    doc.setDrawColor(...LGREY); doc.line(M, y, W-M, y); y += 7;
-    if (currentProfile.nome) {
-      doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(...PRETO);
-      doc.text(currentProfile.nome.toUpperCase(), M, y); y += 5;
+  // ─────────────────────────────
+  // INFORMAÇÕES DE CONTATO
+  // ─────────────────────────────
+  if(currentProfile.nome || currentProfile.wpp){
+    chkPg(24);
+    doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(...PRETO);
+    doc.text('INFORMAÇÕES DE CONTATO', M, y);
+    y += 3;
+    doc.setDrawColor(...LGREY); doc.line(M, y, W-M, y);
+    y += 8;
+
+    if(currentProfile.nome){
+      doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(...PRETO);
+      doc.text(currentProfile.nome.toUpperCase(), M, y); y += 5.5;
     }
-    if (currentProfile.especialidade) {
-      doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
-      doc.text(currentProfile.especialidade, M, y); y += 5;
+    if(currentProfile.especialidade){
+      doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+      doc.text(currentProfile.especialidade, M, y); y += 5.2;
     }
-    if (currentProfile.wpp) {
-      doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
-      doc.text('WhatsApp: ' + currentProfile.wpp, M, y); y += 5;
+    // telefones (wpp + wpp2 se houver)
+    const tels = [currentProfile.wpp, currentProfile.wpp2].filter(Boolean).join(' | ');
+    if(tels){
+      doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+      doc.text('Telefones: ' + tels, M, y); y += 5.2;
     }
-    if (currentProfile.cidade) {
-      doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
-      doc.text(currentProfile.cidade, M, y); y += 5;
+    if(currentProfile.insta){
+      doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+      doc.text('Instagram: ' + currentProfile.insta, M, y); y += 5.2;
     }
-    if (currentProfile.insta) {
-      doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
-      doc.text('Instagram: ' + currentProfile.insta, M, y); y += 5;
+    if(currentProfile.cidade){
+      doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+      doc.text(currentProfile.cidade, M, y); y += 5.2;
     }
-    y += 4;
+    y += 5;
   }
 
-  // ── CONSIDERAÇÕES IMPORTANTES ──
-  if (p.pg_consideracoes) {
-    chkPg(20);
-    doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.setTextColor(...PRETO);
-    doc.text('CONSIDERAÇÕES IMPORTANTES', M, y); y += 4;
-    doc.setDrawColor(...LGREY); doc.line(M, y, W-M, y); y += 7;
-    doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
-    const pcl = doc.splitTextToSize(p.pg_consideracoes, TW); doc.text(pcl, M, y); y += pcl.length * 5 + 6;
+  // ─────────────────────────────
+  // CONSIDERAÇÕES IMPORTANTES
+  // ─────────────────────────────
+  const consideracoes = p.pg_consideracoes || '';
+  if(consideracoes){
+    chkPg(24);
+    doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(...PRETO);
+    doc.text('CONSIDERAÇÕES IMPORTANTES', M, y);
+    y += 3;
+    doc.setDrawColor(...LGREY); doc.line(M, y, W-M, y);
+    y += 8;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+    const pcl = doc.splitTextToSize(consideracoes, TW);
+    doc.text(pcl, M, y); y += pcl.length * 5.2 + 6;
   }
 
-  // ── OBSERVAÇÕES FINAIS ──
-  if (p.obs_final) {
+  // ─────────────────────────────
+  // OBSERVAÇÕES / AGRADECIMENTO
+  // ─────────────────────────────
+  if(p.obs_final){
     chkPg(14);
-    doc.setFontSize(9.5); doc.setFont('helvetica','italic'); doc.setTextColor(...CINZA);
-    const ol = doc.splitTextToSize(p.obs_final, TW); doc.text(ol, M, y); y += ol.length * 5 + 4;
+    doc.setFont('helvetica','italic'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+    const ol = doc.splitTextToSize(p.obs_final, TW);
+    doc.text(ol, M, y); y += ol.length * 5.2 + 4;
   }
 
-  // ── RODAPÉ DO PERFIL ──
-  if (currentProfile.rodape) {
+  // ─────────────────────────────
+  // RODAPÉ DO PERFIL
+  // ─────────────────────────────
+  if(currentProfile.rodape){
     chkPg(10);
-    doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(160,160,160);
-    const rl = doc.splitTextToSize(currentProfile.rodape, TW); doc.text(rl, M, y);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(160,160,160);
+    const rl = doc.splitTextToSize(currentProfile.rodape, TW);
+    doc.text(rl, M, y);
   }
 
-  // ── NÚMERO DE PÁGINAS ──
+  // número de páginas
   const pages = doc.internal.getNumberOfPages();
-  for (let i=1; i<=pages; i++) {
+  for(let i=1;i<=pages;i++){
     doc.setPage(i);
-    doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(180,180,180);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(180,180,180);
     doc.text('Página ' + i + ' de ' + pages, W-M, 290, {align:'right'});
   }
 
