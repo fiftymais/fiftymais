@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Fifty+ | Propostas para Marceneiros</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #D42B2B;
+  --red-dark: #AA2020;
+  --red-light: #FFF0F0;
+  --bg: #F2F2F7;
+  --surface: #FFFFFF;
+  --surface2: #F8F8F8;
+  --border: #E5E5EA;
+  --text: #1C1C1E;
+  --text2: #48484A;
+  --text3: #8E8E93;
+  --green: #34C759;
+  --green-dark: #248A3D;
+  --green-bg: #F0FFF4;
+  --radius: 13px;
+  --nav-h: 56px;
+  --tab-h: 60px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100%; font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+/* ── LOGIN ── */
+#loginScreen {
+  min-height: 100vh; min-height: 100dvh;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(160deg, #1A1A1A 0%, #2D0808 100%);
+  padding: 24px 20px;
+  padding-top: calc(24px + var(--safe-top));
+  padding-bottom: calc(24px + var(--safe-bottom));
+}
+.login-box {
+  background: white; border-radius: 20px; padding: 36px 24px;
+  width: 100%; max-width: 400px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+}
+.login-logo { font-size: 32px; font-weight: 700; color: var(--red); text-align: center; margin-bottom: 6px; letter-spacing: -1px; }
+.login-sub { text-align: center; font-size: 14px; color: var(--text3); margin-bottom: 32px; }
+.login-label { font-size: 13px; font-weight: 600; color: var(--text2); display: block; margin-bottom: 6px; margin-top: 16px; }
+.login-input {
+  width: 100%; padding: 14px 16px; border: 1.5px solid var(--border); border-radius: 12px;
+  font-family: 'Inter', sans-serif; font-size: 16px; outline: none; transition: border-color 0.15s;
+  background: var(--surface2); color: var(--text);
+}
+.login-input:focus { border-color: var(--red); background: white; }
+.login-btn {
+  width: 100%; padding: 16px; background: var(--red); color: white; border: none;
+  border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 17px; font-weight: 600;
+  cursor: pointer; margin-top: 22px; min-height: 54px; transition: background 0.15s; -webkit-appearance: none;
+}
+.login-btn:active { background: var(--red-dark); transform: scale(0.98); }
+.login-btn:disabled { opacity: 0.5; }
+.login-err { background: #FFF0F0; border: 1px solid #FCA5A5; color: var(--red); font-size: 14px; padding: 12px 14px; border-radius: 10px; margin-top: 14px; display: none; line-height: 1.4; }
+.login-forgot { text-align: center; margin-top: 16px; font-size: 14px; color: var(--text3); padding: 10px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+.login-switch a { color: var(--red); font-weight: 600; cursor: pointer; text-decoration: none; }
+
+/* ── APP SHELL ── */
+#appScreen { display: none; min-height: 100vh; min-height: 100dvh; }
+
+.topbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+  height: calc(var(--nav-h) + var(--safe-top));
+  padding-top: var(--safe-top);
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar-logo { font-size: 22px; font-weight: 700; color: var(--red); letter-spacing: -0.5px; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+
+/* ── NAV ── */
+#appScreen { display: none; }
+.nav-avatar {
+  width: 34px; height: 34px; border-radius: 50%; background: var(--red);
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700;
+}
+.btn-logout {
+  font-size: 14px; color: var(--text3); cursor: pointer; padding: 8px 12px;
+  border-radius: 8px; transition: all 0.15s; border: 1px solid var(--border); background: none;
+  font-family: 'Inter', sans-serif; min-height: 36px;
+}
+.btn-logout:active { background: var(--bg); }
+
+/* ── LAYOUT ── */
+.wrap { max-width: 640px; margin: 0 auto; padding: 16px 14px calc(var(--tab-h) + var(--safe-bottom) + 16px); }
+
+/* ── BOTTOM TABBAR ── */
+.tabbar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border); display: flex;
+  height: calc(var(--tab-h) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom); z-index: 100;
+}
+.tab-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 3px; border: none; background: none;
+  cursor: pointer; font-family: 'Inter', sans-serif; padding: 8px 4px 4px;
+  color: var(--text3); min-height: var(--tab-h);
+}
+.tab-btn.active { color: var(--red); }
+.tab-icon { font-size: 22px; line-height: 1; }
+.tab-label { font-size: 10px; font-weight: 600; letter-spacing: 0.2px; }
+.page { display: none; }
+.page.active { display: block; }
+.sec-head { margin-bottom: 18px; }
+.sec-head h1 { font-size: 20px; font-weight: 700; margin-bottom: 3px; }
+.sec-head p { font-size: 13px; color: var(--text2); }
+
+/* ── CARDS ── */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; }
+.card-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--red); margin-bottom: 12px; }
+
+/* ── FORM ── */
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+label { display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+input, select, textarea {
+  width: 100%; padding: 13px 14px; border: 1.5px solid var(--border); border-radius: 10px;
+  font-family: 'Inter', sans-serif; font-size: 16px; color: var(--text);
+  background: var(--surface2); transition: border-color 0.15s; outline: none;
+  -webkit-appearance: none; min-height: 50px;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--red); background: white; box-shadow: 0 0 0 3px rgba(212,43,43,0.08); }
+input::placeholder, textarea::placeholder { color: var(--text3); }
+textarea { min-height: auto; resize: none; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ── LOGO UPLOAD ── */
+.logo-area { border: 2px dashed var(--border); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; background: var(--surface2); position: relative; min-height: 76px; }
+.logo-area img { max-height: 60px; max-width: 160px; object-fit: contain; }
+.logo-area .placeholder { font-size: 13px; color: var(--text3); }
+.logo-area .placeholder span { display: block; font-size: 24px; margin-bottom: 4px; }
+#logoInput { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+/* ── CHIPS ── */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1.5px solid var(--border); border-radius: 20px; padding: 9px 16px; font-size: 14px; font-weight: 500; cursor: pointer; background: var(--surface2); color: var(--text2); transition: all 0.15s; user-select: none; min-height: 42px; display: flex; align-items: center; }
+.chip:active { transform: scale(0.95); }
+.chip.on { border-color: var(--red); background: var(--red-light); color: var(--red); font-weight: 600; }
+
+/* ── MOVEL GRID ── */
+.movel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.movel-card { border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 6px; cursor: pointer; text-align: center; background: var(--surface2); transition: all 0.15s; user-select: none; min-height: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.movel-card:active { transform: scale(0.95); }
+.movel-card.on { border-color: var(--red); background: var(--red-light); }
+.movel-card .mi { font-size: 26px; margin-bottom: 5px; }
+.movel-card .ml { font-size: 11px; font-weight: 600; color: var(--text2); line-height: 1.2; }
+.movel-card.on .ml { color: var(--red); }
+
+/* ── MEDIDAS ── */
+.medida-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 8px; }
+.medida-item input { flex: none; padding: 10px 8px; font-size: 15px; min-height: 44px; }
+.medida-dims { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 6px; margin-top: 8px; align-items: end; }
+.dim-wrap { display: flex; flex-direction: column; gap: 4px; }
+.dim-wrap label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text3); margin: 0; }
+.medida-item .mi-label { font-size: 10px; color: var(--text3); white-space: nowrap; font-weight: 600; }
+.btn-add-medida { display: flex; align-items: center; gap: 8px; justify-content: center; width: 100%; padding: 14px; border: 2px dashed var(--border); border-radius: 10px; background: none; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600; color: var(--text3); cursor: pointer; margin-top: 6px; min-height: 52px; transition: all 0.15s; }
+.btn-add-medida:active { border-color: var(--red); color: var(--red); }
+.btn-rm-medida { width: 38px; min-height: 44px; border-radius: 8px; border: 1px solid #FCA5A5; background: #FFF0F0; color: #EF4444; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+/* ── PGTO ── */
+.pgto-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.pgto-card { border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 6px; cursor: pointer; background: var(--surface2); transition: all 0.15s; user-select: none; text-align: center; min-height: 62px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.pgto-card:active { transform: scale(0.95); }
+.pgto-card.on { border-color: var(--red); background: var(--red-light); }
+.pgto-card .pi { font-size: 20px; margin-bottom: 4px; }
+.pgto-card .pl { font-size: 11px; font-weight: 600; color: var(--text2); }
+.pgto-card.on .pl { color: var(--red); }
+
+/* ── STEPS ── */
+.steps-bar { display: flex; gap: 2px; align-items: center; margin-bottom: 16px; padding: 12px 14px; background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow-x: auto; }
+.step-dot { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--text3); transition: all 0.15s; white-space: nowrap; cursor: pointer; }
+.step-dot.active { color: var(--red); }
+.step-dot.done { color: var(--green); }
+.step-dot .sd { width: 22px; height: 22px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+.step-dot.active .sd { background: var(--red); color: white; }
+.step-dot.done .sd { background: var(--green); color: white; }
+.step-line { flex: 1; min-width: 10px; height: 1px; background: var(--border); }
+
+/* ── BTNS ── */
+.btn { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; padding: 16px; border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; min-height: 54px; -webkit-appearance: none; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+.btn:active:not(:disabled) { transform: scale(0.97); }
+.btn-primary { background: var(--red); color: white; }
+.btn-primary:active:not(:disabled) { background: var(--red-dark); }
+.btn-outline { background: var(--surface); color: var(--text2); border: 1.5px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.btn-outline:active { background: var(--bg); }
+.btn-green { background: #16A34A; color: white; }
+.btn-green:active { background: #15803D; }
+.btn-whatsapp { background: #25D366; color: white; }
+.btn-whatsapp:active { background: #1DBB5B; }
+.btn-row { display: flex; gap: 10px; margin-top: 8px; }
+.btn-row .btn { flex: 1; }
+
+/* ── FOTO ── */
+.foto-upload-area { border: 2px dashed var(--border); border-radius: 9px; padding: 18px; text-align: center; cursor: pointer; background: var(--surface2); min-height: 72px; display: flex; align-items: center; justify-content: center; }
+.foto-grid { display: flex; flex-wrap: wrap; gap: 7px; }
+.foto-thumb { width: 70px; height: 70px; border-radius: 7px; object-fit: cover; border: 1.5px solid var(--border); cursor: pointer; }
+.foto-add-more { width: 70px; height: 70px; border-radius: 7px; border: 2px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; background: var(--surface2); color: var(--text3); }
+
+/* ── PREVIEW ── */
+.preview-box { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 14px; }
+.preview-header { background: var(--red); color: white; padding: 18px 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.preview-header h2 { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+.preview-header p { font-size: 12px; opacity: 0.75; }
+.preview-logo-box { background: white; border-radius: 7px; padding: 7px 10px; display: flex; align-items: center; justify-content: center; min-width: 64px; min-height: 34px; flex-shrink: 0; }
+.preview-logo-box img { max-height: 26px; max-width: 80px; object-fit: contain; }
+.preview-logo-box .logo-text { font-size: 11px; font-weight: 700; color: var(--red); }
+.preview-body { padding: 16px 20px; }
+.pv-section { margin-bottom: 14px; }
+.pv-section h3 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); margin-bottom: 7px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+.pv-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; border-bottom: 1px solid #F4F4F5; gap: 10px; }
+.pv-row:last-child { border-bottom: none; }
+.pv-row .pk { color: var(--text2); flex-shrink: 0; }
+.pv-row .pv { font-weight: 600; text-align: right; }
+.total-stripe { background: #18181B; color: white; border-radius: 9px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.total-stripe .tl { font-size: 11px; font-weight: 600; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.5px; }
+.total-stripe .tv { font-size: 22px; font-weight: 700; color: #FF6B6B; }
+.pgto-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.pgto-pill { background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; padding: 4px 9px; font-size: 12px; font-weight: 600; color: var(--text2); }
+.footer-stripe { background: var(--surface2); border-top: 1px solid var(--border); padding: 10px 18px; display: flex; justify-content: space-between; align-items: center; }
+.footer-stripe .fs-left { font-size: 11px; color: var(--text3); }
+.footer-stripe .fs-brand { font-weight: 700; color: var(--red); }
+.med-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.med-table th { background: var(--surface2); padding: 6px 8px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text3); border-bottom: 1px solid var(--border); }
+.med-table td { padding: 6px 8px; border-bottom: 1px solid #F4F4F5; }
+
+/* ── PROPOSTAS ── */
+.propostas-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.btn-nova { background: var(--red); color: white; border: none; border-radius: 10px; padding: 10px 20px; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; min-height: 44px; }
+.btn-nova:active { background: var(--red-dark); transform: scale(0.97); }
+.search-bar { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.search-bar select { width: 100%; }
+.proposta-card { background: var(--surface); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.pc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.pc-num { font-size: 11px; color: var(--text3); margin-bottom: 2px; font-weight: 500; }
+.pc-cliente { font-size: 17px; font-weight: 700; }
+.pc-tipo { font-size: 13px; color: var(--text2); margin-top: 2px; }
+.pc-total { font-size: 18px; font-weight: 700; color: var(--red); text-align: right; flex-shrink: 0; }
+.pc-actions { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-top: 12px; }
+.pc-btn { padding: 10px 4px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface2); font-family: 'Inter', sans-serif; color: var(--text2); min-height: 42px; text-align: center; transition: all 0.15s; }
+.pc-btn:active { background: var(--bg); transform: scale(0.95); }
+.pc-btn.danger { color: #EF4444; border-color: #FCA5A5; background: #FFF5F5; }
+.status-badge { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 5px; display: inline-block; }
+.status-ativa { background: #EFF6FF; color: #1D4ED8; }
+.status-enviada { background: var(--green-bg); color: var(--green); }
+.status-fechada { background: #F3F4F6; color: #6B7280; }
+.empty-state { text-align: center; padding: 50px 20px; color: var(--text3); }
+.empty-state .ei { font-size: 42px; margin-bottom: 12px; }
+.loading-state { text-align: center; padding: 40px; color: var(--text3); font-size: 14px; }
+
+/* ── PREVIEW ACTIONS ── */
+.preview-actions { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+
+/* ── MODAL ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; display: none; align-items: flex-end; justify-content: center; padding-bottom: var(--safe-bottom); }
+.modal-overlay.show { display: flex; }
+.modal-box { background: white; border-radius: 20px 20px 0 0; padding: 6px 20px 24px; width: 100%; max-width: 480px; }
+.modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 10px auto 18px; }
+.modal-box h3 { font-size: 19px; font-weight: 700; margin-bottom: 8px; text-align: center; }
+.modal-box p { font-size: 15px; color: var(--text2); margin-bottom: 22px; text-align: center; line-height: 1.5; }
+.modal-btns { display: flex; flex-direction: column; gap: 10px; }
+.modal-btns .btn { flex: 1; }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: calc(var(--tab-h) + var(--safe-bottom) + 12px); left: 50%; transform: translateX(-50%) translateY(30px); background: #1C1C1E; color: white; padding: 12px 22px; border-radius: 22px; font-size: 14px; font-weight: 500; opacity: 0; transition: all 0.2s; z-index: 9999; white-space: nowrap; pointer-events: none; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── PROFILE ── */
+.profile-saved { display: flex; align-items: center; gap: 10px; background: var(--green-bg); border: 1px solid #BBF7D0; border-radius: 9px; padding: 12px 16px; margin-bottom: 12px; }
+
+/* ── AVISO INTERNO ── */
+.aviso-interno { background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 7px; padding: 10px 12px; font-size: 13px; color: #92400E; margin-bottom: 12px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 360px) {
+  .movel-grid { grid-template-columns: repeat(3, 1fr); }
+  .pgto-grid { grid-template-columns: repeat(3, 1fr); }
+  .chip { font-size: 13px; padding: 8px 12px; }
+}
+@media (min-width: 500px) {
+  .search-bar { flex-direction: row; }
+  .search-bar select { width: 160px; flex-shrink: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">Fifty+</div>
+    <div class="login-sub">Propostas profissionais para marceneiros</div>
+
+    <div id="loginForm">
+      <span class="login-label">E-mail</span>
+      <input class="login-input" type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email" inputmode="email">
+      <span class="login-label">Senha</span>
+      <input class="login-input" type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="login-err" id="loginErr"></div>
+      <button class="login-btn" id="loginBtn" onclick="doLogin()">Entrar</button>
+      <div class="login-forgot" onclick="showForgot()">Esqueci minha senha</div>
+      <div style="text-align:center;margin-top:18px;font-size:12px;color:#A1A1AA;line-height:1.6;">
+        Acesso exclusivo para clientes.<br>Adquira em <strong style="color:var(--red);">fiftymais.com.br</strong>
+      </div>
+    </div>
+
+    <div id="forgotForm" style="display:none">
+      <span class="login-label">E-mail cadastrado</span>
+      <input class="login-input" type="email" id="forgotEmail" placeholder="seu@email.com" inputmode="email">
+      <div class="login-err" id="forgotErr"></div>
+      <button class="login-btn" id="forgotBtn" onclick="doForgot()">Enviar link de recuperação</button>
+      <div style="text-align:center;margin-top:14px;font-size:13px;">
+        <a onclick="showLogin()" style="color:var(--red);cursor:pointer;font-weight:600;">← Voltar ao login</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appScreen">
+<div class="topbar">
+  <div class="topbar-logo">Fifty+</div>
+  <div class="topbar-right">
+    <div class="nav-avatar" id="navAvatar">?</div>
+    <button class="btn-logout" onclick="doLogout()">Sair</button>
+  </div>
+</div>
+
+<div class="wrap">
+<div class="page active" id="page-propostas">
+  <div class="propostas-header">
+    <div>
+      <h1 style="font-size:20px;font-weight:700;">Minhas Propostas</h1>
+      <p style="font-size:13px;color:var(--text3);margin-top:2px;" id="totalPropostas">Carregando...</p>
+    </div>
+    <button class="btn-nova" onclick="novaPropostaNav()">+ Nova</button>
+  </div>
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="🔍 Buscar cliente ou tipo..." oninput="filtrarPropostas()">
+    <select id="filterStatus" onchange="filtrarPropostas()">
+      <option value="">Todas</option>
+      <option value="ativa">Ativas</option>
+      <option value="enviada">Enviadas</option>
+      <option value="fechada">Fechadas</option>
+    </select>
+  </div>
+  <div id="propostasList">
+    <div class="loading-state">⏳ Carregando propostas...</div>
+  </div>
+</div>
+
+<!-- ORÇAMENTO -->
+<div class="page" id="page-orcamento">
+  <div class="sec-head">
+    <h1 id="orcTitle">Nova Proposta</h1>
+    <p>Preencha os dados para gerar a proposta.</p>
+  </div>
+
+  <div class="steps-bar">
+    <div class="step-dot active" onclick="goStep(1)"><div class="sd">1</div><span>Cliente</span></div>
+    <div class="step-line"></div>
+    <div class="step-dot" onclick="goStep(2)"><div class="sd">2</div><span>Móvel</span></div>
+    <div class="step-line"></div>
+    <div class="step-dot" onclick="goStep(3)"><div class="sd">3</div><span>Medidas</span></div>
+    <div class="step-line"></div>
+    <div class="step-dot" onclick="goStep(4)"><div class="sd">4</div><span>Valores</span></div>
+    <div class="step-line"></div>
+    <div class="step-dot" onclick="goStep(5)"><div class="sd">5</div><span>Pagamento</span></div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="step-page" id="step1">
+    <div class="card">
+      <div class="card-head">Dados do Cliente</div>
+      <div class="field"><label>Nome *</label><input type="text" id="c-nome" placeholder="Nome completo do cliente" autocomplete="off"></div>
+      <div class="field"><label>WhatsApp *</label><input type="tel" id="c-wpp" placeholder="(98) 99999-9999" inputmode="tel"></div>
+      <div class="field"><label>Endereço / Local do serviço</label><input type="text" id="c-end" placeholder="Rua, número, bairro..."></div>
+      <div class="field"><label>Complemento / Referência</label><input type="text" id="c-ref" placeholder="Apto, portão, referência..."></div>
+    </div>
+    <button class="btn btn-primary" onclick="goStep(2)">Próximo: Tipo de Móvel →</button>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step-page" id="step2" style="display:none">
+    <div class="card">
+      <div class="card-head">Tipo de Móvel</div>
+      <div class="movel-grid" id="movelGrid">
+        <div class="movel-card on" onclick="selectMovel(this,'Cozinha Planejada')"><div class="mi">🍳</div><div class="ml">Cozinha</div></div>
+        <div class="movel-card" onclick="selectMovel(this,'Guarda-Roupa')"><div class="mi">🚪</div><div class="ml">Guarda-Roupa</div></div>
+        <div class="movel-card" onclick="selectMovel(this,'Home Office')"><div class="mi">💻</div><div class="ml">Home Office</div></div>
+        <div class="movel-card" onclick="selectMovel(this,'Closet')"><div class="mi">👔</div><div class="ml">Closet</div></div>
+        <div class="movel-card" onclick="selectMovel(this,'Banheiro')"><div class="mi">🚿</div><div class="ml">Banheiro</div></div>
+        <div class="movel-card" onclick="selectMovel(this,'Rack / Painel TV')"><div class="mi">📺</div><div class="ml">Rack/Painel</div></div>
+        <div class="movel-card" onclick="selectMovel(this,'Quarto Infantil')"><div class="mi">🧸</div><div class="ml">Infantil</div></div>
+        <div class="movel-card" onclick="selectMovel(this,'Área de Serviço')"><div class="mi">🧺</div><div class="ml">Área Serviço</div></div>
+        <div class="movel-card" onclick="selectMovel(this,'Móvel Sob Medida')"><div class="mi">📐</div><div class="ml">Sob Medida</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">Material e Acabamento</div>
+      <div class="field">
+        <label>Tipo de Chapa</label>
+        <div class="chips" id="chapas">
+          <div class="chip on" onclick="toggleChip(this,'chapas')">MDF 15mm</div>
+          <div class="chip" onclick="toggleChip(this,'chapas')">MDF 18mm</div>
+          <div class="chip" onclick="toggleChip(this,'chapas')">MDP</div>
+          <div class="chip" onclick="toggleChip(this,'chapas')">Compensado</div>
+          <div class="chip" onclick="toggleChip(this,'chapas')">Madeira Maciça</div>
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label>Acabamento</label>
+        <div class="chips" id="acabs">
+          <div class="chip on" onclick="toggleChip(this,'acabs')">Lacca Fosco</div>
+          <div class="chip" onclick="toggleChip(this,'acabs')">Lacca Brilho</div>
+          <div class="chip" onclick="toggleChip(this,'acabs')">Fórmica</div>
+          <div class="chip" onclick="toggleChip(this,'acabs')">Melamina</div>
+          <div class="chip" onclick="toggleChip(this,'acabs')">Natural</div>
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label>Ferragens</label>
+        <div class="chips" id="ferragens">
+          <div class="chip on" onclick="toggleChip(this,'ferragens')">Padrão</div>
+          <div class="chip" onclick="toggleChip(this,'ferragens')">Blum</div>
+          <div class="chip" onclick="toggleChip(this,'ferragens')">Häfele</div>
+          <div class="chip" onclick="toggleChip(this,'ferragens')">Grass</div>
+        </div>
+      </div>
+      <div class="field" style="margin-top:12px;"><label>Detalhes adicionais</label><textarea id="m-detalhes" rows="2" placeholder="Cores, puxadores, especificações especiais..."></textarea></div>
+    </div>
+    <div class="card">
+      <div class="card-head">Fotos de Referência</div>
+      <div class="foto-upload-area" id="fotoUploadArea" onclick="document.getElementById('fotosInput').click()">
+        <input type="file" id="fotosInput" accept="image/*" multiple style="display:none" onchange="loadFotos(this)">
+        <div id="fotoPlaceholder"><div style="font-size:24px;margin-bottom:4px;">📷</div><div style="font-size:13px;color:var(--text3);">Toque para adicionar fotos</div></div>
+        <div id="fotoGrid" class="foto-grid" style="display:none;"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="goStep(1)">← Voltar</button>
+      <button class="btn btn-primary" onclick="goStep(3)">Próximo →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step-page" id="step3" style="display:none">
+    <div class="card">
+      <div class="card-head">Medidas (em metros)</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Adicione cada peça ou ambiente.</p>
+      <div id="medidasList"></div>
+      <button class="btn-add-medida" onclick="addMedida()">+ Adicionar peça / ambiente</button>
+    </div>
+    <div class="card">
+      <div class="card-head">Prazo de Entrega</div>
+      <div class="g2">
+        <div class="field"><label>Início Previsto</label><input type="date" id="m-inicio"></div>
+        <div class="field"><label>Entrega Prevista</label><input type="date" id="m-entrega"></div>
+      </div>
+      <div class="field"><label>Observação sobre prazo</label><input type="text" id="m-prazo-obs" placeholder="Ex: Prazo após aprovação do projeto"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="goStep(2)">← Voltar</button>
+      <button class="btn btn-primary" onclick="goStep(4)">Próximo →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step-page" id="step4" style="display:none">
+    <div class="card">
+      <div class="card-head">Custos Internos 🔒 Só você vê</div>
+      <div class="aviso-interno">O cliente verá <strong>apenas o valor final</strong>. Este detalhamento é privado.</div>
+      <div class="field"><label>Materiais (R$)</label><input type="number" id="v-mat" placeholder="0,00" min="0" step="0.01" inputmode="decimal" oninput="calcTotal()"></div>
+      <div class="field"><label>Mão de Obra (R$)</label><input type="number" id="v-mao" placeholder="0,00" min="0" step="0.01" inputmode="decimal" oninput="calcTotal()"></div>
+      <div class="field"><label>Ferragens e Acessórios (R$)</label><input type="number" id="v-ferr" placeholder="0,00" min="0" step="0.01" inputmode="decimal" oninput="calcTotal()"></div>
+      <div class="field"><label>Outros (frete, instalação...)</label><input type="number" id="v-outros" placeholder="0,00" min="0" step="0.01" inputmode="decimal" oninput="calcTotal()"></div>
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+        <label>Margem de Lucro (%)</label>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:5px;">
+          <input type="number" id="v-margem" placeholder="30" min="0" max="500" step="1" value="30" inputmode="numeric" oninput="calcTotal()" style="width:85px;flex:none;">
+          <div style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text3);">
+            Margem: <strong id="v-margem-val" style="color:var(--red);">R$ 0,00</strong>
+          </div>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:12px;font-weight:600;color:var(--text3);">Subtotal</span>
+          <span id="v-subtotal-preview" style="font-size:14px;color:var(--text2);font-weight:600;">R$ 0,00</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;background:var(--red-light);border-radius:8px;padding:12px 14px;">
+          <span style="font-size:14px;font-weight:700;color:var(--red);">TOTAL DO CLIENTE</span>
+          <span id="v-total-preview" style="font-size:20px;font-weight:700;color:var(--red);">R$ 0,00</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">Condições e Garantia</div>
+      <div class="field"><label>Garantia</label><input type="text" id="v-garantia" placeholder="Ex: 1 ano em ferragens, 6 meses em acabamento"></div>
+      <div class="field"><label>O que está incluso</label><textarea id="v-incluso" rows="2" placeholder="Projeto, material, mão de obra e instalação..."></textarea></div>
+      <div class="field"><label>O que NÃO está incluso</label><textarea id="v-excluso" rows="2" placeholder="Eletrodomésticos, iluminação..."></textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="goStep(3)">← Voltar</button>
+      <button class="btn btn-primary" onclick="goStep(5)">Próximo →</button>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="step-page" id="step5" style="display:none">
+    <div class="card">
+      <div class="card-head">Formas de Pagamento</div>
+      <div class="pgto-grid">
+        <div class="pgto-card on" onclick="togglePgto(this)"><div class="pi">💵</div><div class="pl">Dinheiro</div></div>
+        <div class="pgto-card on" onclick="togglePgto(this)"><div class="pi">📱</div><div class="pl">PIX</div></div>
+        <div class="pgto-card" onclick="togglePgto(this)"><div class="pi">💳</div><div class="pl">Cartão Crédito</div></div>
+        <div class="pgto-card" onclick="togglePgto(this)"><div class="pi">🏦</div><div class="pl">Transferência</div></div>
+        <div class="pgto-card" onclick="togglePgto(this)"><div class="pi">📋</div><div class="pl">Cheque</div></div>
+        <div class="pgto-card" onclick="togglePgto(this)"><div class="pi">🤝</div><div class="pl">Financiamento</div></div>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="field"><label>Condição de pagamento</label><input type="text" id="pg-condicao" placeholder="Ex: 50% na aprovação + 50% na entrega"></div>
+        <div class="field"><label>Chave PIX</label><input type="text" id="pg-pix" placeholder="CPF, telefone ou e-mail"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">Observações Finais</div>
+      <textarea id="obs-final" rows="3" placeholder="Informações adicionais para o cliente..."></textarea>
+    </div>
+    <button class="btn btn-green" id="btnSalvar" onclick="salvarProposta()" style="margin-top:6px;">
+      💾 Salvar e Gerar Proposta
+    </button>
+  </div>
+</div>
+
+<!-- PREVIEW -->
+<div class="page" id="page-preview">
+  <div class="sec-head">
+    <h1>Proposta Gerada ✅</h1>
+    <p>Revise, baixe o PDF ou envie pelo WhatsApp.</p>
+  </div>
+
+  <div class="preview-box" id="previewBox">
+    <div class="preview-header">
+      <div>
+        <h2 id="pv-titulo">Proposta de Serviço</h2>
+        <p id="pv-num">Nº 001</p>
+        <p id="pv-validade-txt" style="opacity:0.6;margin-top:2px;font-size:11px;">Válido por 15 dias</p>
+      </div>
+      <div class="preview-logo-box" id="pvLogoBox">
+        <div class="logo-text" id="pvLogoText">—</div>
+      </div>
+    </div>
+    <div class="preview-body">
+      <div class="pv-section">
+        <h3>Marceneiro</h3>
+        <div class="pv-row"><span class="pk">Nome</span><span class="pv" id="pv-marc-nome">—</span></div>
+        <div class="pv-row"><span class="pk">WhatsApp</span><span class="pv" id="pv-marc-wpp">—</span></div>
+        <div class="pv-row"><span class="pk">Cidade</span><span class="pv" id="pv-marc-cidade">—</span></div>
+      </div>
+      <div class="pv-section">
+        <h3>Cliente</h3>
+        <div class="pv-row"><span class="pk">Nome</span><span class="pv" id="pv-c-nome">—</span></div>
+        <div class="pv-row"><span class="pk">WhatsApp</span><span class="pv" id="pv-c-wpp">—</span></div>
+        <div class="pv-row"><span class="pk">Endereço</span><span class="pv" id="pv-c-end">—</span></div>
+        <div class="pv-row" id="pv-c-ref-row"><span class="pk">Referência</span><span class="pv" id="pv-c-ref">—</span></div>
+      </div>
+      <div class="pv-section">
+        <h3>Serviço</h3>
+        <div class="pv-row"><span class="pk">Tipo</span><span class="pv" id="pv-tipo">—</span></div>
+        <div class="pv-row"><span class="pk">Material</span><span class="pv" id="pv-mat">—</span></div>
+        <div class="pv-row"><span class="pk">Acabamento</span><span class="pv" id="pv-acab">—</span></div>
+        <div class="pv-row"><span class="pk">Ferragens</span><span class="pv" id="pv-ferr">—</span></div>
+        <div class="pv-row" id="pv-det-row"><span class="pk">Detalhes</span><span class="pv" id="pv-det">—</span></div>
+      </div>
+      <div class="pv-section" id="pv-med-section">
+        <h3>Medidas</h3>
+        <table class="med-table"><thead><tr><th>Peça / Ambiente</th><th>Larg.</th><th>Alt.</th><th>Prof.</th></tr></thead><tbody id="pv-med-body"></tbody></table>
+      </div>
+      <div class="pv-section">
+        <h3>Prazo</h3>
+        <div class="pv-row"><span class="pk">Início</span><span class="pv" id="pv-inicio">—</span></div>
+        <div class="pv-row"><span class="pk">Entrega</span><span class="pv" id="pv-entrega">—</span></div>
+        <div class="pv-row" id="pv-prazo-obs-row"><span class="pk">Obs.</span><span class="pv" id="pv-prazo-obs">—</span></div>
+      </div>
+      <div class="total-stripe">
+        <div class="tl">Valor Total</div>
+        <div class="tv" id="pv-total">R$ 0,00</div>
+      </div>
+      <div class="pv-section" style="margin-top:14px;">
+        <h3>Pagamento</h3>
+        <div class="pgto-pills" id="pv-pgto-pills"></div>
+        <div class="pv-row" style="margin-top:8px;" id="pv-condicao-row"><span class="pk">Condição</span><span class="pv" id="pv-condicao">—</span></div>
+        <div class="pv-row" id="pv-pix-row"><span class="pk">PIX</span><span class="pv" id="pv-pix">—</span></div>
+      </div>
+      <div class="pv-section">
+        <h3>Garantia e Condições</h3>
+        <div class="pv-row"><span class="pk">Garantia</span><span class="pv" id="pv-garantia">—</span></div>
+        <div class="pv-row"><span class="pk">Incluso</span><span class="pv" id="pv-incluso">—</span></div>
+        <div class="pv-row"><span class="pk">Não incluso</span><span class="pv" id="pv-excluso">—</span></div>
+      </div>
+      <div id="pv-fotos-section" class="pv-section" style="display:none;"></div>
+      <div id="pv-obs-section" style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:10px 13px;font-size:13px;color:#78350F;margin-top:4px;display:none;">
+        <strong>Observações:</strong> <span id="pv-obs"></span>
+      </div>
+      <div id="pv-rodape-section" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-size:12px;color:var(--text3);margin-top:8px;display:none;">
+        <span id="pv-rodape"></span>
+      </div>
+    </div>
+    <div class="footer-stripe">
+      <div class="fs-left">Gerado por <span class="fs-brand">Fifty+</span></div>
+      <div style="font-size:11px;color:var(--text3);" id="pv-footer-date">—</div>
+    </div>
+  </div>
+
+  <div class="preview-actions">
+    <button class="btn btn-primary" onclick="gerarPDF()">📄 Baixar PDF</button>
+    <button class="btn btn-whatsapp" onclick="enviarWhatsApp()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Enviar proposta via WhatsApp
+    </button>
+    <button class="btn btn-outline" onclick="showPage('propostas')">← Voltar para Propostas</button>
+  </div>
+</div>
+
+<!-- PERFIL -->
+<div class="page" id="page-perfil">
+  <div class="sec-head"><h1>Perfil</h1><p>Suas informações aparecem em todas as propostas.</p></div>
+  <div id="profileSavedMsg" style="display:none;">
+    <div class="profile-saved"><span>✅</span><span style="font-size:14px;font-weight:600;">Perfil salvo com sucesso!</span></div>
+  </div>
+  <div class="card">
+    <div class="card-head">Dados da Marcenaria</div>
+    <div class="field"><label>Nome da Marcenaria *</label><input type="text" id="p-nome" placeholder="Marcenaria do João Silva"></div>
+    <div class="field"><label>CPF / CNPJ</label><input type="text" id="p-cpf" placeholder="000.000.000-00" inputmode="numeric"></div>
+    <div class="g2">
+      <div class="field"><label>WhatsApp *</label><input type="tel" id="p-wpp" placeholder="(98) 99999-9999" inputmode="tel"></div>
+      <div class="field"><label>Cidade / Estado *</label><input type="text" id="p-cidade" placeholder="São Luís, MA"></div>
+    </div>
+    <div class="field"><label>Endereço</label><input type="text" id="p-endereco" placeholder="Rua, número, bairro..."></div>
+    <div class="field"><label>Instagram</label><input type="text" id="p-insta" placeholder="@marcenaria_joao"></div>
+    <div class="field"><label>Especialidade</label><input type="text" id="p-esp" placeholder="Móveis planejados residenciais"></div>
+  </div>
+  <div class="card">
+    <div class="card-head">Logo</div>
+    <div class="logo-area" id="logoArea">
+      <input type="file" id="logoInput" accept="image/*" onchange="loadLogo(this)">
+      <div class="placeholder" id="logoPlaceholder"><span>🏷️</span>Toque para fazer upload da logo</div>
+      <img id="logoPreview" style="display:none">
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">Configurações Padrão</div>
+    <div class="g2">
+      <div class="field"><label>Prazo Mín. (dias)</label><input type="number" id="p-prazo-min" value="20" inputmode="numeric"></div>
+      <div class="field"><label>Prazo Máx. (dias)</label><input type="number" id="p-prazo-max" value="45" inputmode="numeric"></div>
+    </div>
+    <div class="field"><label>Validade do Orçamento (dias)</label><input type="number" id="p-validade" value="15" inputmode="numeric"></div>
+    <div class="field"><label>Rodapé das propostas</label><textarea id="p-rodape" rows="2" placeholder="Ex: Obrigado pela preferência! Fones: ..."></textarea></div>
+  </div>
+  <button class="btn btn-primary" onclick="salvarPerfil()">💾 Salvar Perfil</button>
+</div>
+
+</div><!-- end wrap -->
+
+<!-- BOTTOM TAB BAR -->
+<div class="tabbar">
+  <button class="tab-btn active" id="tab-propostas" onclick="showPage('propostas')">
+    <span class="tab-icon">📋</span>
+    <span class="tab-label">Propostas</span>
+  </button>
+  <button class="tab-btn" id="tab-orcamento" onclick="novaPropostaNav()">
+    <span class="tab-icon">➕</span>
+    <span class="tab-label">Nova</span>
+  </button>
+  <button class="tab-btn" id="tab-perfil" onclick="showPage('perfil')">
+    <span class="tab-icon">⚙️</span>
+    <span class="tab-label">Perfil</span>
+  </button>
+</div>
+
+</div><!-- end appScreen -->
+
+<!-- MODAL DELETE -->
+<div class="modal-overlay" id="modalDelete">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <h3>Excluir proposta?</h3>
+    <p>Esta ação não pode ser desfeita.</p>
+    <div class="modal-btns">
+      <button class="btn btn-primary" style="background:#EF4444;" onclick="confirmarDelete()">Excluir</button>
+      <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// SUPABASE
+// ═══════════════════════════════════════
+const SUPABASE_URL = 'https://toibffvqhvpflhakhyls.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvaWJmZnZxaHZwZmxoYWtoeWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1MTgyMDEsImV4cCI6MjA4NzA5NDIwMX0.G8ffvH1ImjfvGFSP0dnCiXHZCfrpjqYvsa5FidfkGGM';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let currentUser    = null;
+let currentProfile = {};
+let logoData       = null;
+let movelSelecionado = 'Cozinha Planejada';
+let medidas        = [];
+let fotosData      = [];
+let allPropostas   = [];
+let editingId      = null;
+let deleteTargetId = null;
+let orcNumBase     = 1;
+let currentPropostaData = {};
+let appReady       = false;
+
+// ═══════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  if (!email || !pass) return showErr('loginErr', 'Preencha e-mail e senha.');
+  setBtn('loginBtn', true, 'Entrando...');
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  setBtn('loginBtn', false, 'Entrar');
+  if (error) return showErr('loginErr', traduzirErro(error.message));
+}
+
+async function doForgot() {
+  const email = document.getElementById('forgotEmail').value.trim();
+  if (!email) return showErr('forgotErr', 'Digite seu e-mail.');
+  setBtn('forgotBtn', true, 'Enviando...');
+  const { error } = await sb.auth.resetPasswordForEmail(email);
+  setBtn('forgotBtn', false, 'Enviar link de recuperação');
+  if (error) return showErr('forgotErr', traduzirErro(error.message));
+  showErr('forgotErr', '✅ Link enviado! Verifique seu e-mail.', true);
+}
+
+async function doLogout() {
+  try {
+    await sb.auth.signOut();
+  } catch(e) {}
+  currentUser = null;
+  appReady = false;
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+function showLogin()  { document.getElementById('loginForm').style.display='block'; document.getElementById('forgotForm').style.display='none'; }
+function showForgot() { document.getElementById('loginForm').style.display='none'; document.getElementById('forgotForm').style.display='block'; }
+
+function traduzirErro(msg) {
+  if (msg.includes('Invalid login') || msg.includes('invalid_credentials')) return 'E-mail ou senha incorretos.';
+  if (msg.includes('Email not confirmed')) return 'Confirme seu e-mail antes de entrar.';
+  if (msg.includes('Password should')) return 'Senha muito curta (mínimo 6 caracteres).';
+  return msg;
+}
+
+function showErr(id, msg, isSuccess = false) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.style.background = isSuccess ? '#F0FDF4' : '#FFF0F0';
+  el.style.borderColor = isSuccess ? '#BBF7D0' : '#FCA5A5';
+  el.style.color = isSuccess ? '#16A34A' : 'var(--red)';
+}
+
+function setBtn(id, disabled, text) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.disabled = disabled;
+  el.textContent = text;
+}
+
+// ═══════════════════════════════════════
+// SESSION — corrigido race condition
+// ═══════════════════════════════════════
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (session?.user) {
+    currentUser = session.user;
+    const letter = (session.user.email || 'U')[0].toUpperCase();
+    document.getElementById('navAvatar').textContent = letter;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    if (!appReady) {
+      appReady = true;
+      await carregarPerfil();
+      await carregarPropostas();
+    }
+  } else {
+    currentUser = null;
+    appReady = false;
+  }
+});
+
+// ═══════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  // Atualizar tab bar
+  ['propostas','orcamento','perfil'].forEach(t => {
+    document.getElementById('tab-'+t)?.classList.toggle('active', t === id);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function novaPropostaNav() {
+  novaPropostaForm();
+  showPage('orcamento');
+}
+
+// ═══════════════════════════════════════
+// PERFIL
+// ═══════════════════════════════════════
+async function salvarPerfil() {
+  if (!currentUser) return;
+  const btn = document.querySelector('#page-perfil .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Salvando...'; }
+  const data = {
+    id: currentUser.id,
+    nome: v('p-nome'), wpp: v('p-wpp'), cidade: v('p-cidade'),
+    insta: v('p-insta'), especialidade: v('p-esp'),
+    cpf: v('p-cpf'), endereco: v('p-endereco'),
+    prazo_min: parseInt(v('p-prazo-min')) || 20,
+    prazo_max: parseInt(v('p-prazo-max')) || 45,
+    validade:  parseInt(v('p-validade'))  || 15,
+    rodape: v('p-rodape'), logo: logoData,
+    updated_at: new Date().toISOString()
+  };
+  const { error } = await sb.from('profiles').upsert(data);
+  if (btn) { btn.disabled = false; btn.textContent = '💾 Salvar Perfil'; }
+  if (error) { toast('❌ Erro: ' + error.message); return; }
+  currentProfile = data;
+  const msg = document.getElementById('profileSavedMsg');
+  msg.style.display = 'block';
+  toast('✅ Perfil salvo!');
+  setTimeout(() => { msg.style.display = 'none'; }, 3000);
+}
+
+async function carregarPerfil() {
+  if (!currentUser) return;
+  const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+  if (!data) return;
+  currentProfile = data;
+  set('p-nome', data.nome);       set('p-wpp', data.wpp);
+  set('p-cidade', data.cidade);   set('p-insta', data.insta);
+  set('p-esp', data.especialidade); set('p-cpf', data.cpf || '');
+  set('p-endereco', data.endereco || '');
+  set('p-prazo-min', data.prazo_min); set('p-prazo-max', data.prazo_max);
+  set('p-validade', data.validade);   set('p-rodape', data.rodape);
+  if (data.logo) {
+    logoData = data.logo;
+    document.getElementById('logoPreview').src = data.logo;
+    document.getElementById('logoPreview').style.display = 'block';
+    document.getElementById('logoPlaceholder').style.display = 'none';
+  }
+}
+
+function loadLogo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    logoData = e.target.result;
+    document.getElementById('logoPreview').src = logoData;
+    document.getElementById('logoPreview').style.display = 'block';
+    document.getElementById('logoPlaceholder').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ═══════════════════════════════════════
+// PROPOSTAS — LISTAR
+// ═══════════════════════════════════════
+async function carregarPropostas() {
+  if (!currentUser) return;
+  document.getElementById('propostasList').innerHTML = '<div class="loading-state">⏳ Carregando...</div>';
+  const { data, error } = await sb.from('propostas')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false });
+  if (error) {
+    document.getElementById('propostasList').innerHTML = '<div class="loading-state">❌ Erro ao carregar. Tente novamente.</div>';
+    return;
+  }
+  allPropostas = data || [];
+  orcNumBase = allPropostas.length + 1;
+  renderPropostas(allPropostas);
+}
+
+function renderPropostas(lista) {
+  const el    = document.getElementById('propostasList');
+  const total = document.getElementById('totalPropostas');
+  total.textContent = lista.length + ' proposta' + (lista.length !== 1 ? 's' : '');
+  if (lista.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="ei">📋</div><p>Nenhuma proposta ainda.<br>Toque em <strong>+ Nova</strong> para começar.</p></div>`;
+    return;
+  }
+  el.innerHTML = lista.map(p => {
+    const num    = String(p.numero || 1).padStart(3, '0');
+    const data   = new Date(p.created_at).toLocaleDateString('pt-BR');
+    const status = p.status || 'ativa';
+    return `
+    <div class="proposta-card">
+      <div class="pc-top">
+        <div>
+          <div class="pc-num">#${num} · ${data}</div>
+          <div class="pc-cliente">${p.cliente_nome || 'Cliente não informado'}</div>
+          <div class="pc-tipo">${p.tipo_movel || '—'}</div>
+          <div style="margin-top:5px;"><span class="status-badge status-${status}">${status.charAt(0).toUpperCase()+status.slice(1)}</span></div>
+        </div>
+        <div class="pc-total">${fmt(p.v_total || 0)}</div>
+      </div>
+      <div class="pc-actions">
+        <button class="pc-btn" onclick="visualizarProposta('${p.id}')">👁 Ver</button>
+        <button class="pc-btn" onclick="editarProposta('${p.id}')">✏️ Editar</button>
+        <button class="pc-btn" onclick="reenviarWhatsApp('${p.id}')">📱 WhatsApp</button>
+        <button class="pc-btn danger" onclick="deletarProposta('${p.id}')">🗑 Excluir</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filtrarPropostas() {
+  const q      = document.getElementById('searchInput').value.toLowerCase();
+  const status = document.getElementById('filterStatus').value;
+  const lista  = allPropostas.filter(p => {
+    const matchQ = !q || (p.cliente_nome||'').toLowerCase().includes(q) || (p.tipo_movel||'').toLowerCase().includes(q);
+    const matchS = !status || p.status === status;
+    return matchQ && matchS;
+  });
+  renderPropostas(lista);
+}
+
+// ═══════════════════════════════════════
+// PROPOSTAS — SALVAR
+// ═══════════════════════════════════════
+async function salvarProposta() {
+  if (!currentUser) { toast('❌ Faça login novamente.'); return; }
+
+  const btn = document.getElementById('btnSalvar');
+  btn.disabled = true;
+  btn.textContent = '⏳ Salvando...';
+
+  try {
+    const mat   = parseFloat(v('v-mat'))    || 0;
+    const mao   = parseFloat(v('v-mao'))    || 0;
+    const ferrV = parseFloat(v('v-ferr'))   || 0;
+    const out   = parseFloat(v('v-outros')) || 0;
+    const marg  = parseFloat(v('v-margem')) || 0;
+    const sub   = mat + mao + ferrV + out;
+    const total = sub + sub * (marg / 100);
+
+    const medsData = medidas.map(id => ({
+      nome: document.getElementById('mn-'+id)?.value || '',
+      l:    document.getElementById('ml-'+id)?.value || '',
+      a:    document.getElementById('ma-'+id)?.value || '',
+      p:    document.getElementById('mp-'+id)?.value || ''
+    })).filter(m => m.nome || m.l);
+
+    const pgtos = [...document.querySelectorAll('.pgto-card.on')].map(c => c.querySelector('.pl').textContent);
+
+    const payload = {
+      user_id:       currentUser.id,
+      numero:        editingId ? undefined : orcNumBase,
+      cliente_nome:  v('c-nome'),
+      cliente_wpp:   v('c-wpp'),
+      cliente_end:   v('c-end'),
+      cliente_ref:   v('c-ref'),
+      tipo_movel:    movelSelecionado,
+      chapa:         document.querySelector('#chapas .chip.on')?.textContent || '',
+      acabamento:    document.querySelector('#acabs .chip.on')?.textContent || '',
+      ferragens:     document.querySelector('#ferragens .chip.on')?.textContent || '',
+      detalhes:      v('m-detalhes'),
+      medidas:       medsData,
+      fotos:         fotosData,
+      inicio:        v('m-inicio') || null,
+      entrega:       v('m-entrega') || null,
+      prazo_obs:     v('m-prazo-obs'),
+      v_mat: mat, v_mao: mao, v_ferr: ferrV, v_outros: out,
+      v_margem: marg, v_total: total,
+      garantia:      v('v-garantia'),
+      incluso:       v('v-incluso'),
+      excluso:       v('v-excluso'),
+      pgto_formas:   pgtos,
+      pgto_condicao: v('pg-condicao'),
+      pgto_pix:      v('pg-pix'),
+      obs_final:     v('obs-final'),
+      status:        'ativa',
+      updated_at:    new Date().toISOString()
+    };
+
+    let error;
+    if (editingId) {
+      ({ error } = await sb.from('propostas').update(payload).eq('id', editingId));
+    } else {
+      ({ error } = await sb.from('propostas').insert(payload));
+    }
+
+    if (error) throw new Error(error.message);
+
+    toast(editingId ? '✅ Proposta atualizada!' : '✅ Proposta salva!');
+    editingId = null;
+    await carregarPropostas();
+    montarPreview();
+    showPage('preview');
+
+  } catch (err) {
+    toast('❌ Erro ao salvar: ' + (err.message || 'Tente novamente.'));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '💾 Salvar e Gerar Proposta';
+  }
+}
+
+// ═══════════════════════════════════════
+// PROPOSTAS — VER / EDITAR / DELETAR
+// ═══════════════════════════════════════
+function visualizarProposta(id) {
+  const p = allPropostas.find(x => x.id === id);
+  if (!p) return;
+  currentPropostaData = p;
+  montarPreviewDeProposta(p);
+  showPage('preview');
+}
+
+function editarProposta(id) {
+  const p = allPropostas.find(x => x.id === id);
+  if (!p) return;
+  editingId = id;
+  carregarFormDeProposta(p);
+  document.getElementById('orcTitle').textContent = 'Editar Proposta';
+  document.getElementById('btnSalvar').textContent = '💾 Salvar Alterações';
+  goStep(1);
+  showPage('orcamento');
+}
+
+function carregarFormDeProposta(p) {
+  set('c-nome', p.cliente_nome); set('c-wpp', p.cliente_wpp);
+  set('c-end', p.cliente_end);   set('c-ref', p.cliente_ref);
+  movelSelecionado = p.tipo_movel || 'Cozinha Planejada';
+  document.querySelectorAll('#movelGrid .movel-card').forEach(c => {
+    const lbl = c.querySelector('.ml').textContent;
+    const map = {'Cozinha Planejada':'Cozinha','Guarda-Roupa':'Guarda-Roupa','Home Office':'Home Office','Closet':'Closet','Banheiro':'Banheiro','Rack / Painel TV':'Rack/Painel','Quarto Infantil':'Infantil','Área de Serviço':'Área Serviço','Móvel Sob Medida':'Sob Medida'};
+    c.classList.toggle('on', lbl === (map[p.tipo_movel] || p.tipo_movel));
+  });
+  setChip('chapas', p.chapa); setChip('acabs', p.acabamento); setChip('ferragens', p.ferragens);
+  set('m-detalhes', p.detalhes);
+  fotosData = p.fotos || [];
+  renderFotoGrid();
+  medidas = [];
+  document.getElementById('medidasList').innerHTML = '';
+  (p.medidas || []).forEach(m => addMedida(m.nome, m.l, m.a, m.p));
+  set('m-inicio', p.inicio || ''); set('m-entrega', p.entrega || '');
+  set('m-prazo-obs', p.prazo_obs);
+  set('v-mat', p.v_mat || ''); set('v-mao', p.v_mao || '');
+  set('v-ferr', p.v_ferr || ''); set('v-outros', p.v_outros || '');
+  set('v-margem', p.v_margem ?? 30);
+  set('v-garantia', p.garantia); set('v-incluso', p.incluso); set('v-excluso', p.excluso);
+  document.querySelectorAll('.pgto-card').forEach(c => {
+    c.classList.toggle('on', (p.pgto_formas || []).includes(c.querySelector('.pl').textContent));
+  });
+  set('pg-condicao', p.pgto_condicao); set('pg-pix', p.pgto_pix);
+  set('obs-final', p.obs_final);
+  calcTotal();
+}
+
+function setChip(group, value) {
+  document.querySelectorAll(`#${group} .chip`).forEach(c => {
+    c.classList.toggle('on', c.textContent.trim() === (value || '').trim());
+  });
+}
+
+function deletarProposta(id) {
+  deleteTargetId = id;
+  document.getElementById('modalDelete').classList.add('show');
+}
+
+async function confirmarDelete() {
+  if (!deleteTargetId) return;
+  const { error } = await sb.from('propostas').delete().eq('id', deleteTargetId);
+  closeModal();
+  if (error) { toast('❌ Erro ao excluir.'); return; }
+  toast('🗑 Proposta excluída.');
+  deleteTargetId = null;
+  await carregarPropostas();
+}
+
+function closeModal() {
+  document.getElementById('modalDelete').classList.remove('show');
+  deleteTargetId = null;
+}
+
+// ═══════════════════════════════════════
+// PREVIEW
+// ═══════════════════════════════════════
+function montarPreview() {
+  const mat   = parseFloat(v('v-mat'))    || 0;
+  const mao   = parseFloat(v('v-mao'))    || 0;
+  const ferrV = parseFloat(v('v-ferr'))   || 0;
+  const out   = parseFloat(v('v-outros')) || 0;
+  const marg  = parseFloat(v('v-margem')) || 0;
+  const sub   = mat + mao + ferrV + out;
+  const total = sub + sub * (marg / 100);
+
+  const p = {
+    cliente_nome:  v('c-nome'), cliente_wpp: v('c-wpp'),
+    cliente_end:   v('c-end'),  cliente_ref: v('c-ref'),
+    tipo_movel:    movelSelecionado,
+    chapa:         document.querySelector('#chapas .chip.on')?.textContent || '',
+    acabamento:    document.querySelector('#acabs .chip.on')?.textContent || '',
+    ferragens:     document.querySelector('#ferragens .chip.on')?.textContent || '',
+    detalhes:      v('m-detalhes'),
+    medidas:       medidas.map(id => ({ nome: document.getElementById('mn-'+id)?.value||'', l: document.getElementById('ml-'+id)?.value||'', a: document.getElementById('ma-'+id)?.value||'', p: document.getElementById('mp-'+id)?.value||'' })),
+    inicio:        v('m-inicio'), entrega: v('m-entrega'), prazo_obs: v('m-prazo-obs'),
+    v_total:       total,
+    pgto_formas:   [...document.querySelectorAll('.pgto-card.on')].map(c => c.querySelector('.pl').textContent),
+    pgto_condicao: v('pg-condicao'), pgto_pix: v('pg-pix'),
+    garantia:      v('v-garantia'), incluso: v('v-incluso'), excluso: v('v-excluso'),
+    obs_final:     v('obs-final'),
+    numero:        editingId ? (allPropostas.find(x=>x.id===editingId)?.numero || 1) : orcNumBase,
+    created_at:    new Date().toISOString()
+  };
+  currentPropostaData = p;
+  montarPreviewDeProposta(p);
+}
+
+function montarPreviewDeProposta(p) {
+  const hoje = new Date(p.created_at || Date.now()).toLocaleDateString('pt-BR');
+  const num  = '#' + String(p.numero || 1).padStart(3,'0');
+
+  s2('pv-titulo', 'Proposta – ' + (p.tipo_movel || ''));
+  s2('pv-num', num + ' · ' + hoje);
+  s2('pv-footer-date', 'Emitido em ' + hoje);
+  s2('pv-validade-txt', 'Válido por ' + (currentProfile.validade || 15) + ' dias');
+
+  const logo = logoData || currentProfile.logo;
+  const pvLogoBox = document.getElementById('pvLogoBox');
+  pvLogoBox.innerHTML = logo
+    ? `<img src="${logo}" style="max-height:26px;max-width:80px;object-fit:contain;">`
+    : `<div class="logo-text">${currentProfile.nome || 'Marcenaria'}</div>`;
+
+  s2('pv-marc-nome',   currentProfile.nome   || '—');
+  s2('pv-marc-wpp',    currentProfile.wpp    || '—');
+  s2('pv-marc-cidade', currentProfile.cidade || '—');
+  s2('pv-c-nome', p.cliente_nome || '—');
+  s2('pv-c-wpp',  p.cliente_wpp  || '—');
+  s2('pv-c-end',  p.cliente_end  || '—');
+  s2('pv-c-ref',  p.cliente_ref  || '');
+  tog('pv-c-ref-row', !!p.cliente_ref);
+
+  s2('pv-tipo', p.tipo_movel  || '—');
+  s2('pv-mat',  p.chapa       || '—');
+  s2('pv-acab', p.acabamento  || '—');
+  s2('pv-ferr', p.ferragens   || '—');
+  s2('pv-det',  p.detalhes    || '');
+  tog('pv-det-row', !!p.detalhes);
+
+  const tbody = document.getElementById('pv-med-body');
+  tbody.innerHTML = '';
+  let hasM = false;
+  (p.medidas || []).forEach(m => {
+    if (m.nome || m.l) {
+      hasM = true;
+      tbody.innerHTML += `<tr><td>${m.nome||'—'}</td><td>${m.l?m.l+'m':'—'}</td><td>${m.a?m.a+'m':'—'}</td><td>${m.p?m.p+'m':'—'}</td></tr>`;
+    }
+  });
+  tog('pv-med-section', hasM);
+
+  const ini = p.inicio  ? new Date(p.inicio +'T12:00').toLocaleDateString('pt-BR') : '—';
+  const ent = p.entrega ? new Date(p.entrega+'T12:00').toLocaleDateString('pt-BR') : '—';
+  s2('pv-inicio',    ini);
+  s2('pv-entrega',   ent);
+  s2('pv-prazo-obs', p.prazo_obs || '');
+  tog('pv-prazo-obs-row', !!p.prazo_obs);
+
+  s2('pv-total', fmt(p.v_total || 0));
+
+  document.getElementById('pv-pgto-pills').innerHTML = (p.pgto_formas || []).map(f => `<div class="pgto-pill">${f}</div>`).join('');
+  s2('pv-condicao', p.pgto_condicao || '—');
+  tog('pv-condicao-row', !!p.pgto_condicao);
+  s2('pv-pix', p.pgto_pix || '');
+  tog('pv-pix-row', !!p.pgto_pix);
+
+  s2('pv-garantia', p.garantia || '—');
+  s2('pv-incluso',  p.incluso  || '—');
+  s2('pv-excluso',  p.excluso  || '—');
+
+  const pvFotos = document.getElementById('pv-fotos-section');
+  const fotos   = p.fotos || fotosData;
+  if (fotos && fotos.length > 0) {
+    pvFotos.style.display = 'block';
+    pvFotos.innerHTML = `<h3>Fotos de Referência</h3><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">${fotos.map(src=>`<img src="${src}" style="width:72px;height:72px;object-fit:cover;border-radius:7px;border:1px solid var(--border);">`).join('')}</div>`;
+  } else {
+    pvFotos.style.display = 'none';
+  }
+
+  const obsEl = document.getElementById('pv-obs-section');
+  if (p.obs_final) { document.getElementById('pv-obs').textContent = p.obs_final; obsEl.style.display = 'block'; }
+  else obsEl.style.display = 'none';
+
+  const rodapeEl = document.getElementById('pv-rodape-section');
+  if (currentProfile.rodape) { document.getElementById('pv-rodape').textContent = currentProfile.rodape; rodapeEl.style.display = 'block'; }
+  else rodapeEl.style.display = 'none';
+}
+
+// ═══════════════════════════════════════
+// WHATSAPP
+// ═══════════════════════════════════════
+function enviarWhatsApp() {
+  const p    = currentPropostaData;
+  const wpp  = (v('c-wpp') || p.cliente_wpp || '').replace(/\D/g,'');
+  const mat  = parseFloat(v('v-mat'))||0, mao=parseFloat(v('v-mao'))||0,
+        ferr = parseFloat(v('v-ferr'))||0, out2=parseFloat(v('v-outros'))||0, marg=parseFloat(v('v-margem'))||0;
+  const sub  = mat+mao+ferr+out2;
+  const total = p.v_total || (sub + sub*(marg/100));
+  const pgtos = [...document.querySelectorAll('.pgto-card.on')].map(c=>c.querySelector('.pl').textContent).join(', ')
+    || (p.pgto_formas||[]).join(', ');
+  const cliente  = v('c-nome')     || p.cliente_nome || 'Cliente';
+  const tipo     = movelSelecionado|| p.tipo_movel   || '';
+  const end      = v('c-end')      || p.cliente_end  || '';
+  const entrega  = v('m-entrega')  || p.entrega      || '';
+  const condicao = v('pg-condicao')|| p.pgto_condicao|| '';
+  const pix      = v('pg-pix')     || p.pgto_pix     || '';
+  const garantia = v('v-garantia') || p.garantia     || '';
+  const obs      = v('obs-final')  || p.obs_final    || '';
+  const entFmt   = entrega ? new Date(entrega+'T12:00').toLocaleDateString('pt-BR') : 'a combinar';
+
+  const msg =
+`Olá ${cliente}! 👋
+
+Segue sua proposta para o *${tipo}*:
+
+📍 Local: ${end || 'a confirmar'}
+📅 Entrega prevista: ${entFmt}
+
+💰 *Valor Total: ${fmt(total)}*
+⏳ Válido por ${currentProfile.validade || 15} dias
+
+💳 Pagamento: ${pgtos}${condicao ? '\n📋 Condição: '+condicao : ''}${pix ? '\n📱 PIX: '+pix : ''}${garantia ? '\n✅ Garantia: '+garantia : ''}${obs ? '\n\n📝 '+obs : ''}
+
+Qualquer dúvida é só chamar! 🪚
+${currentProfile.nome || ''}${currentProfile.wpp ? ' • '+currentProfile.wpp : ''}`;
+
+  const url = wpp
+    ? `https://wa.me/55${wpp}?text=${encodeURIComponent(msg)}`
+    : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+
+  // Marcar como enviada
+  if (p.id) {
+    sb.from('propostas').update({ status: 'enviada', updated_at: new Date().toISOString() })
+      .eq('id', p.id).then(() => carregarPropostas());
+  }
+}
+
+function reenviarWhatsApp(id) {
+  const p = allPropostas.find(x => x.id === id);
+  if (!p) return;
+  currentPropostaData = p;
+  montarPreviewDeProposta(p);
+  enviarWhatsApp();
+}
+
+// ═══════════════════════════════════════
+// FORM HELPERS
+// ═══════════════════════════════════════
+function goStep(n) {
+  document.querySelectorAll('.step-page').forEach((s,i) => s.style.display = i+1===n ? 'block' : 'none');
+  document.querySelectorAll('.step-dot').forEach((d,i) => {
+    d.classList.remove('active','done');
+    if (i+1===n) d.classList.add('active');
+    if (i+1<n)  d.classList.add('done');
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function selectMovel(el, tipo) {
+  document.querySelectorAll('#movelGrid .movel-card').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  movelSelecionado = tipo;
+}
+
+function toggleChip(el, group) {
+  document.querySelectorAll(`#${group} .chip`).forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function togglePgto(el) { el.classList.toggle('on'); }
+
+function calcTotal() {
+  const mat  = parseFloat(document.getElementById('v-mat')?.value)    || 0;
+  const mao  = parseFloat(document.getElementById('v-mao')?.value)    || 0;
+  const ferr = parseFloat(document.getElementById('v-ferr')?.value)   || 0;
+  const out  = parseFloat(document.getElementById('v-outros')?.value) || 0;
+  const marg = parseFloat(document.getElementById('v-margem')?.value) || 0;
+  const sub  = mat+mao+ferr+out;
+  const vm   = sub*(marg/100);
+  const total = sub+vm;
+  const mval = document.getElementById('v-margem-val');
+  const spre = document.getElementById('v-subtotal-preview');
+  const tpre = document.getElementById('v-total-preview');
+  if (mval) mval.textContent = fmt(vm);
+  if (spre) spre.textContent = fmt(sub);
+  if (tpre) tpre.textContent = fmt(total);
+}
+
+function addMedida(nome='', l='', a='', p='') {
+  const id = Date.now() + Math.random();
+  medidas.push(id);
+  const div = document.createElement('div');
+  div.className = 'medida-item';
+  div.id = 'med-'+id;
+  div.innerHTML = `
+    <input type="text" placeholder="Nome da peça / ambiente" value="${nome}" id="mn-${id}" autocorrect="off" style="margin-bottom:0;">
+    <div class="medida-dims">
+      <div class="dim-wrap">
+        <label>Larg.</label>
+        <input type="number" placeholder="0.00" value="${l}" id="ml-${id}" min="0" step="0.01" inputmode="decimal">
+      </div>
+      <div class="dim-wrap">
+        <label>Alt.</label>
+        <input type="number" placeholder="0.00" value="${a}" id="ma-${id}" min="0" step="0.01" inputmode="decimal">
+      </div>
+      <div class="dim-wrap">
+        <label>Prof.</label>
+        <input type="number" placeholder="0.00" value="${p}" id="mp-${id}" min="0" step="0.01" inputmode="decimal">
+      </div>
+      <button class="btn-rm-medida" onclick="removeMedida('${id}')">✕</button>
+    </div>`;
+  document.getElementById('medidasList').appendChild(div);
+}
+
+function removeMedida(id) {
+  document.getElementById('med-'+id)?.remove();
+  medidas = medidas.filter(m => m !== id);
+}
+
+function loadFotos(input) {
+  [...input.files].forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => { fotosData.push(e.target.result); renderFotoGrid(); };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderFotoGrid() {
+  const grid = document.getElementById('fotoGrid');
+  const ph   = document.getElementById('fotoPlaceholder');
+  if (fotosData.length > 0) {
+    ph.style.display = 'none'; grid.style.display = 'flex';
+    grid.innerHTML = fotosData.map((src,i) =>
+      `<img src="${src}" class="foto-thumb" onclick="removeFoto(${i})" title="Toque para remover">`
+    ).join('') + `<div class="foto-add-more" onclick="document.getElementById('fotosInput').click()">+</div>`;
+  } else {
+    ph.style.display = 'block'; grid.style.display = 'none';
+  }
+}
+
+function removeFoto(idx) { fotosData.splice(idx,1); renderFotoGrid(); }
+
+function novaPropostaForm() {
+  editingId = null;
+  document.getElementById('orcTitle').textContent = 'Nova Proposta';
+  document.getElementById('btnSalvar').textContent = '💾 Salvar e Gerar Proposta';
+  ['c-nome','c-wpp','c-end','c-ref','m-detalhes','m-inicio','m-entrega','m-prazo-obs',
+   'v-mat','v-mao','v-ferr','v-outros','v-garantia','v-incluso','v-excluso',
+   'pg-condicao','pg-pix','obs-final'].forEach(id => set(id,''));
+  set('v-margem','30');
+  movelSelecionado = 'Cozinha Planejada';
+  document.querySelectorAll('#movelGrid .movel-card').forEach((c,i) => c.classList.toggle('on', i===0));
+  ['chapas','acabs','ferragens'].forEach(g => {
+    document.querySelectorAll(`#${g} .chip`).forEach((c,i) => c.classList.toggle('on', i===0));
+  });
+  document.querySelectorAll('.pgto-card').forEach((c,i) => c.classList.toggle('on', i<2));
+  medidas = []; fotosData = [];
+  document.getElementById('medidasList').innerHTML = '';
+  renderFotoGrid();
+  calcTotal();
+  goStep(1);
+}
+
+// ═══════════════════════════════════════
+// PDF — SIMPLES E LIMPO
+// ═══════════════════════════════════════
+async function gerarPDF() {
+  toast('⏳ Gerando PDF...');
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  const W=210, M=16;
+  const RED=[212,43,43], DARK=[24,24,27], GREY=[82,82,91], LGREY=[228,228,231], XLGREY=[249,249,250], WHITE=[255,255,255];
+  let y=0;
+
+  const p       = currentPropostaData;
+  const logo    = logoData || currentProfile.logo;
+  const hoje    = new Date(p.created_at || Date.now()).toLocaleDateString('pt-BR');
+  const numStr  = String(p.numero || 1).padStart(3,'0');
+  const ini     = p.inicio  ? new Date(p.inicio +'T12:00').toLocaleDateString('pt-BR') : 'A combinar';
+  const ent     = p.entrega ? new Date(p.entrega+'T12:00').toLocaleDateString('pt-BR') : 'A combinar';
+  const pvTotal = fmt(p.v_total || 0);
+
+  function chkPg(n=20) { if(y+n>282){ doc.addPage(); y=14; headerPage(); } }
+  function ln(color=LGREY, w=0.3) { doc.setDrawColor(...color); doc.setLineWidth(w); doc.line(M,y,W-M,y); y+=4; }
+
+  function headerPage() {
+    doc.setFillColor(...RED); doc.rect(0,0,W,2,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(...GREY);
+    doc.text(currentProfile.nome||'', M, 8);
+    doc.text('Proposta #'+numStr, W-M, 8, {align:'right'});
+    doc.setDrawColor(...LGREY); doc.setLineWidth(0.3); doc.line(M,10,W-M,10);
+    y=16;
+  }
+
+  // ── CABEÇALHO ──
+  doc.setFillColor(...DARK); doc.rect(0,0,W,36,'F');
+  doc.setFillColor(...RED);  doc.rect(0,33,W,3,'F');
+
+  if(logo) {
+    try { doc.addImage(logo,'JPEG', M, 8, 28,18,'','FAST'); } catch(e){}
+  } else {
+    doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(...RED);
+    doc.text(currentProfile.nome||'Fifty+', M, 22);
+  }
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...WHITE);
+  doc.text(currentProfile.nome||'', W-M, 14, {align:'right'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(160,160,160);
+  if(currentProfile.cidade) doc.text(currentProfile.cidade, W-M, 20, {align:'right'});
+  if(currentProfile.wpp)    doc.text('WhatsApp: '+currentProfile.wpp, W-M, 25, {align:'right'});
+
+  y = 42;
+
+  // ── NÚMERO DA PROPOSTA ──
+  doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(...DARK);
+  doc.text('Proposta #'+numStr, M, y);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...GREY);
+  doc.text(hoje+'  •  Válida por '+(currentProfile.validade||15)+' dias', M, y+6);
+  y+=14;
+
+  ln();
+
+  // ── DUAS COLUNAS: Marceneiro | Cliente ──
+  const col = (W-M*2-8)/2;
+  const cx2 = M+col+8;
+
+  function colBox(x, title, lines) {
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(...RED);
+    doc.text(title.toUpperCase(), x, y);
+    let yy = y+5;
+    lines.filter(Boolean).forEach(l => {
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...DARK);
+      const parts = l.split('::');
+      if(parts.length===2) {
+        doc.setTextColor(...GREY); doc.text(parts[0]+':', x, yy);
+        doc.setTextColor(...DARK); doc.setFont('helvetica','bold');
+        const ls = doc.splitTextToSize(parts[1].trim(), col-20);
+        doc.text(ls, x+22, yy);
+        yy += ls.length*4.5;
+      } else {
+        doc.text(l, x, yy); yy+=4.5;
+      }
+    });
+    return yy;
+  }
+
+  const yMar = colBox(M, 'Marceneiro', [
+    currentProfile.nome,
+    currentProfile.cidade ? 'Local::'+currentProfile.cidade : null,
+    currentProfile.wpp    ? 'WhatsApp::'+currentProfile.wpp : null,
+    currentProfile.cpf    ? 'CPF/CNPJ::'+currentProfile.cpf : null,
+  ]);
+
+  const yCli = colBox(cx2, 'Cliente', [
+    p.cliente_nome,
+    p.cliente_wpp ? 'WhatsApp::'+p.cliente_wpp : null,
+    p.cliente_end ? 'Local::'+p.cliente_end     : null,
+    p.cliente_ref ? 'Ref::'+p.cliente_ref        : null,
+  ]);
+
+  y = Math.max(yMar, yCli) + 6;
+  ln();
+
+  // ── SERVIÇO ──
+  doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(...RED);
+  doc.text('SERVIÇO', M, y);
+  y += 5;
+
+  doc.setFillColor(...XLGREY); doc.rect(M, y, W-M*2, 8, 'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...DARK);
+  doc.text(p.tipo_movel||'—', M+4, y+5.5);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...GREY);
+  const specs = [p.chapa, p.acabamento, p.ferragens].filter(Boolean).join('  •  ');
+  if(specs) doc.text(specs, W-M-4, y+5.5, {align:'right'});
+  y += 11;
+
+  if(p.detalhes) {
+    const dl = doc.splitTextToSize('Detalhes: '+p.detalhes, W-M*2-8);
+    doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(...GREY);
+    doc.text(dl, M+4, y);
+    y += dl.length*4.5 + 4;
+  }
+
+  // ── MEDIDAS ──
+  const meds = (p.medidas||[]).filter(m=>m.nome||m.l);
+  if(meds.length > 0) {
+    chkPg(14+meds.length*8);
+    y+=2;
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(...RED);
+    doc.text('MEDIDAS', M, y); y+=5;
+
+    doc.setFillColor(...DARK); doc.rect(M,y,W-M*2,7,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...WHITE);
+    const cols = [M+3, M+60, M+95, M+120, M+145];
+    ['Peça / Ambiente','Larg.','Alt.','Prof.'].forEach((h,i)=> doc.text(h, cols[i], y+4.5));
+    y+=8;
+
+    meds.forEach((m,idx)=>{
+      chkPg(9);
+      if(idx%2===0){ doc.setFillColor(...XLGREY); doc.rect(M,y,W-M*2,7,'F'); }
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...DARK);
+      doc.text(m.nome||'—', cols[0], y+4.5);
+      doc.setTextColor(...GREY);
+      doc.text(m.l?m.l+'m':'—', cols[1], y+4.5);
+      doc.text(m.a?m.a+'m':'—', cols[2], y+4.5);
+      doc.text(m.p?m.p+'m':'—', cols[3], y+4.5);
+      doc.setDrawColor(...LGREY); doc.setLineWidth(0.2); doc.line(M,y+7,W-M,y+7);
+      y+=7;
+    });
+    y+=4;
+  }
+
+  ln();
+
+  // ── PRAZO ──
+  chkPg(20);
+  const gc4 = (W-M*2)/4;
+  const prazoItems = [
+    { label:'Início Previsto',  val: ini },
+    { label:'Entrega Prevista', val: ent },
+    { label:'Validade',         val: (currentProfile.validade||15)+' dias' },
+    { label:'Cond. Pagamento',  val: p.pgto_condicao||'A combinar' },
+  ];
+  doc.setFillColor(...XLGREY); doc.rect(M,y,W-M*2,16,'S');
+  prazoItems.forEach((c,i)=>{
+    const cx=M+i*gc4;
+    if(i>0){ doc.setDrawColor(...LGREY); doc.setLineWidth(0.2); doc.line(cx,y,cx,y+16); }
+    doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(...GREY);
+    doc.text(c.label, cx+3, y+5);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(...DARK);
+    doc.text(c.val, cx+3, y+12);
+  });
+  y+=20;
+
+  // ── TOTAL ──
+  chkPg(20);
+  doc.setFillColor(...DARK); doc.rect(M,y,W-M*2,16,'F');
+  doc.setFillColor(...RED);  doc.rect(M,y,4,16,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(150,150,150);
+  doc.text('VALOR TOTAL DO SERVIÇO', M+8, y+9);
+  doc.setFontSize(15); doc.setTextColor(...WHITE);
+  doc.text(pvTotal, W-M-4, y+11, {align:'right'});
+  y+=22;
+
+  // ── PAGAMENTO ──
+  if(p.pgto_formas?.length || p.pgto_pix) {
+    chkPg(16);
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(...RED);
+    doc.text('PAGAMENTO', M, y); y+=5;
+    const pgStr = (p.pgto_formas||[]).join('  •  ');
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...DARK);
+    if(pgStr) { doc.text(pgStr, M, y); y+=5; }
+    if(p.pgto_pix) { doc.setTextColor(...GREY); doc.text('PIX: '+p.pgto_pix, M, y); y+=5; }
+    y+=4;
+  }
+
+  // ── INCLUSO / EXCLUSO ──
+  if(p.incluso||p.excluso) {
+    chkPg(20);
+    const half=(W-M*2-6)/2;
+    if(p.incluso) {
+      const il = doc.splitTextToSize(p.incluso, half-8);
+      const ih = il.length*4.5+13;
+      doc.setFillColor(240,253,244); doc.roundedRect(M,y,half,ih,2,2,'F');
+      doc.setDrawColor(187,247,208); doc.roundedRect(M,y,half,ih,2,2,'S');
+      doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(22,163,74);
+      doc.text('INCLUSO', M+4, y+5);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(21,128,61);
+      doc.text(il, M+4, y+11);
+      if(p.excluso) {
+        const el2=doc.splitTextToSize(p.excluso, half-8); const eh=el2.length*4.5+13;
+        const x2=M+half+6;
+        doc.setFillColor(254,242,242); doc.roundedRect(x2,y,half,eh,2,2,'F');
+        doc.setDrawColor(252,165,165); doc.roundedRect(x2,y,half,eh,2,2,'S');
+        doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(...RED);
+        doc.text('NÃO INCLUSO', x2+4, y+5);
+        doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(185,28,28);
+        doc.text(el2, x2+4, y+11);
+        y+=Math.max(ih,eh)+6;
+      } else { y+=ih+6; }
+    }
+  }
+
+  // ── GARANTIA ──
+  if(p.garantia) {
+    chkPg(14);
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(...RED);
+    doc.text('GARANTIA', M, y); y+=4;
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...DARK);
+    const gl = doc.splitTextToSize(p.garantia, W-M*2);
+    doc.text(gl, M, y); y+=gl.length*4.5+6;
+  }
+
+  // ── OBS FINAIS ──
+  if(p.obs_final) {
+    chkPg(16);
+    const ol = doc.splitTextToSize(p.obs_final, W-M*2-10);
+    const oh = ol.length*4.5+13;
+    doc.setFillColor(255,251,235); doc.roundedRect(M,y,W-M*2,oh,2,2,'F');
+    doc.setDrawColor(253,230,138); doc.roundedRect(M,y,W-M*2,oh,2,2,'S');
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(120,53,15);
+    doc.text('OBSERVAÇÕES', M+4, y+5);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(78,52,18);
+    doc.text(ol, M+4, y+11);
+    y+=oh+6;
+  }
+
+  // ── FOTOS ──
+  const allFotos = p.fotos || fotosData || [];
+  if(allFotos.length>0) {
+    chkPg(45);
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(...RED);
+    doc.text('FOTOS DE REFERÊNCIA', M, y); y+=5;
+    const fW=42,fH=34,gap=4; let fx=M;
+    for(let i=0;i<allFotos.length;i++){
+      if(fx+fW>W-M){ fx=M; y+=fH+gap; chkPg(fH+gap); }
+      try{ doc.addImage(allFotos[i],'JPEG',fx,y,fW,fH,'','FAST'); }catch(e){}
+      fx+=fW+gap;
+    }
+    y+=fH+8;
+  }
+
+  // ── RODAPÉ DA EMPRESA ──
+  if(currentProfile.rodape) {
+    chkPg(14);
+    const rl = doc.splitTextToSize(currentProfile.rodape, W-M*2);
+    doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(...GREY);
+    doc.text(rl, M, y); y+=rl.length*4.5+6;
+  }
+
+  // ── FOOTER TODAS AS PÁGINAS ──
+  const pages = doc.internal.getNumberOfPages();
+  for(let i=1;i<=pages;i++) {
+    doc.setPage(i);
+    doc.setFillColor(...RED); doc.rect(0,288,W,9,'F');
+    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(...WHITE);
+    doc.text('Proposta gerada por Fifty+ | fiftymais.com.br', M, 293.5);
+    doc.text('Pág. '+i+' / '+pages, W-M, 293.5, {align:'right'});
+  }
+
+  const nome = (p.cliente_nome||'Cliente').replace(/\s/g,'_');
+  doc.save('Proposta_'+nome+'_'+hoje.replace(/\//g,'-')+'.pdf');
+  toast('✅ PDF baixado!');
+}
+
+// ═══════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════
+function v(id)       { return document.getElementById(id)?.value || ''; }
+function set(id,val) { const el=document.getElementById(id); if(el) el.value=val??''; }
+function s2(id,val)  { const el=document.getElementById(id); if(el) el.textContent=val||''; }
+function tog(id,show){ const el=document.getElementById(id); if(el) el.style.display=show?'':'none'; }
+function fmt(val)    { return 'R$ '+(val||0).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// Fechar modal ao clicar fora
+document.getElementById('modalDelete').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
